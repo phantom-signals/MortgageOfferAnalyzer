@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Mortgage Offer Comparison</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --paper:#f4f5f2;
+    --card:#ffffff;
+    --ink:#161a1d;
+    --slate:#5d6670;
+    --line:#d9dcd6;
+    --line-strong:#c2c7bf;
+    --a:#1f5162;        /* Offer A accent */
+    --b:#9a5b23;        /* Offer B accent */
+    --good:#2f6f4e;
+    --verdict-bg:#161a1d;
+    --verdict-fg:#f4f5f2;
+    --shadow:0 1px 2px rgba(20,26,29,.06),0 8px 24px rgba(20,26,29,.05);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#15181b;
+      --card:#1e2226;
+      --ink:#e8eaec;
+      --slate:#a3acb5;
+      --line:#31373d;
+      --line-strong:#454d55;
+      --a:#6db3c9;        /* Offer A accent, lightened for contrast on dark */
+      --b:#d9a06b;        /* Offer B accent, lightened for contrast on dark */
+      --good:#7fc9a3;
+      --verdict-bg:#0c0e10;
+      --verdict-fg:#e8eaec;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(16px,4vw,48px);
+  }
+  .wrap{max-width:920px;margin:0 auto}
+
+  header{margin-bottom:28px}
+  .eyebrow{
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--slate);font-weight:600;margin:0 0 8px;
+  }
+  h1{
+    font-size:clamp(22px,3.4vw,30px);font-weight:650;margin:0 0 6px;
+    letter-spacing:-.01em;
+  }
+  .sub{color:var(--slate);font-size:14px;margin:0;max-width:60ch}
+
+  /* shared inputs */
+  .shared{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;margin:22px 0;box-shadow:var(--shadow);
+    display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;
+  }
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:12px;font-weight:600;color:var(--slate);letter-spacing:.02em}
+  .field .hint{font-size:11px;color:var(--slate);font-weight:400}
+  .inp{
+    font-family:var(--mono);font-size:15px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line-strong);border-radius:8px;
+    padding:9px 11px;width:100%;transition:border-color .15s,box-shadow .15s;
+  }
+  .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(31,81,98,.15)}
+
+  /* offers grid */
+  .offers{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .offer{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px 20px;box-shadow:var(--shadow);border-top:3px solid var(--accent);
+  }
+  .offer.a{--accent:var(--a)}
+  .offer.b{--accent:var(--b)}
+  .offer h2{
+    font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+    margin:0 0 14px;color:var(--accent);font-weight:700;
+    display:flex;align-items:center;gap:8px;
+  }
+  .offer h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .offer .field{margin-bottom:12px}
+  .offer .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+
+  /* results */
+  .readout{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:5px 0;font-size:13px;gap:12px;
+  }
+  .row .k{color:var(--slate)}
+  .row .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .row.total{border-top:1px dashed var(--line-strong);margin-top:6px;padding-top:9px}
+  .row.total .k{color:var(--ink);font-weight:650}
+  .row.total .v{font-size:15px}
+
+  /* verdict bar */
+  .verdict{
+    margin:22px 0 8px;background:var(--verdict-bg);color:var(--verdict-fg);border-radius:12px;
+    padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+    gap:16px;flex-wrap:wrap;
+  }
+  .verdict .label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.65;margin:0 0 4px}
+  .verdict .headline{font-size:17px;font-weight:600;margin:0}
+  .verdict .amount{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .verdict .amount small{font-size:12px;opacity:.7;font-weight:500;display:block;text-align:right}
+
+  .section-label{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);
+    font-weight:600;margin:26px 0 10px;
+  }
+  .horizon-note{font-size:12px;color:var(--slate);margin-top:2px}
+
+  footer{margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
+  footer p{font-size:12px;color:var(--slate);margin:0 0 8px;max-width:70ch}
+  footer a{color:var(--a);text-decoration:none;border-bottom:1px solid transparent}
+  footer a:hover{border-bottom-color:var(--a)}
+  .refs{font-size:12px;color:var(--slate);line-height:1.8}
+
+  @media (max-width:640px){
+    body{padding:14px}
+    .shared{grid-template-columns:1fr;padding:14px 16px}
+    .offers{grid-template-columns:1fr}
+    .inp{font-size:16px;padding:12px 12px}  /* 16px stops mobile browsers auto-zooming on focus */
+    .row{font-size:14px}
+    .verdict{padding:14px 16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <noscript>
+    <div style="border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:14px;line-height:1.5">
+      <strong>Calculations are off.</strong> This viewer has JavaScript disabled &mdash; email apps block scripts in attachments, so totals and payments cannot compute here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); no internet connection is needed.
+    </div>
+  </noscript>
+  <header>
+    <p class="eyebrow">Mortgage tool</p>
+    <h1>Two-offer cost comparison</h1>
+    <p class="sub">Enter a shared loan amount, then the terms of each offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Excludes property taxes, homeowners insurance, and escrow.</p>
+  </header>
+
+  <div class="shared">
+    <div class="field">
+      <label for="amount">Loan amount (principal)</label>
+      <input class="inp" id="amount" type="number" min="0" step="1000" value="400000" inputmode="decimal">
+    </div>
+    <div class="field">
+      <label for="horizon">Holding period <span class="hint">&mdash; years until you sell/refinance (optional; blank = full term)</span></label>
+      <input class="inp" id="horizon" type="number" min="0" step="1" placeholder="e.g. 5" inputmode="decimal">
+    </div>
+    <div class="field">
+      <label for="homeValue">Home value at purchase <span class="hint">&mdash; lower of sale price or appraisal; drives PMI</span></label>
+      <input class="inp" id="homeValue" type="number" min="0" step="1000" value="450000" inputmode="decimal">
+    </div>
+    <div class="field">
+      <label for="pmiThresh">PMI removal rule</label>
+      <select class="inp" id="pmiThresh" title="When PMI stops. Under the federal Homeowners Protection Act: at 80% loan-to-value you may request cancellation in writing; at 78% the servicer must terminate it automatically. Both are measured against the home's original value and require current payments.">
+        <option value="0.80" title="Optimistic case: you request cancellation as soon as the scheduled balance reaches 80% of original home value. Requires a written request and current payments.">Request cancellation at 80% LTV</option>
+        <option value="0.78" selected title="Default case: servicer terminates PMI automatically when the scheduled balance reaches 78% of original home value. No action needed; payments must be current.">Automatic termination at 78% LTV</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="pmiBasis">PMI premium basis <span class="hint">&mdash; check your rate quote; both are used in practice</span></label>
+      <select class="inp" id="pmiBasis" title="How the premium is computed each month. Insurers use both conventions; your mortgage insurance disclosure states which applies to you.">
+        <option value="declining" selected title="Premium = current scheduled balance x annual PMI rate / 12, so the dollar amount falls as the loan amortizes. Common convention.">Recalculated on declining balance</option>
+        <option value="fixed" title="Premium = original loan amount x annual PMI rate / 12, a constant dollar amount until PMI ends. Used by some policies.">Fixed on original loan amount</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="offers">
+    <!-- Offer A -->
+    <div class="offer a">
+      <h2><span class="dot"></span>Offer A</h2>
+      <div class="field">
+        <label for="rateA">Annual interest rate (%)</label>
+        <input class="inp" id="rateA" type="number" min="0" step="0.001" value="6.25" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="termA">Term (years)</label>
+        <input class="inp" id="termA" type="number" min="1" step="1" value="30" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="freqA">Payments per year</label>
+        <input class="inp" id="freqA" type="number" min="1" step="1" value="12" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="feesA">Upfront fees + points ($)</label>
+        <input class="inp" id="feesA" type="number" min="0" step="100" value="3000" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="pmiA">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
+        <input class="inp" id="pmiA" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
+      </div>
+      <div class="readout" id="outA"></div>
+    </div>
+
+    <!-- Offer B -->
+    <div class="offer b">
+      <h2><span class="dot"></span>Offer B</h2>
+      <div class="field">
+        <label for="rateB">Annual interest rate (%)</label>
+        <input class="inp" id="rateB" type="number" min="0" step="0.001" value="5.99" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="termB">Term (years)</label>
+        <input class="inp" id="termB" type="number" min="1" step="1" value="30" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="freqB">Payments per year</label>
+        <input class="inp" id="freqB" type="number" min="1" step="1" value="12" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="feesB">Upfront fees + points ($)</label>
+        <input class="inp" id="feesB" type="number" min="0" step="100" value="6500" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="pmiB">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
+        <input class="inp" id="pmiB" type="number" min="0" step="0.01" value="0.72" inputmode="decimal">
+      </div>
+      <div class="readout" id="outB"></div>
+    </div>
+  </div>
+
+  <div class="verdict" id="verdict">
+    <div>
+      <p class="label">Verdict</p>
+      <p class="headline" id="verdictText">&mdash;</p>
+      <p class="horizon-note" id="horizonNote"></p>
+    </div>
+    <div class="amount" id="verdictAmount">&mdash;</div>
+  </div>
+
+  <footer>
+    <p><strong>Method.</strong> Payment M = P·i·(1+i)<sup>n</sup> / [(1+i)<sup>n</sup>&minus;1], where i = rate&divide;payments-per-year and n = term&times;payments-per-year. Total to term = M&times;n + fees + PMI. EAR = (1+i)<sup>m</sup>&minus;1. Over a holding period, cost = payments made + PMI paid + fees + remaining balance still owed.</p>
+    <p><strong>PMI.</strong> Charged while the <em>scheduled</em> loan balance exceeds the selected share (78% or 80%) of the home&rsquo;s original value, and never past the midpoint of the amortization schedule (HPA &ldquo;final termination&rdquo;). Under the Homeowners Protection Act, servicers must terminate PMI automatically at 78% LTV of original value and must grant a written cancellation request at 80%; original value means the lower of sale price or appraised value at purchase. This model assumes scheduled amortization only &mdash; extra principal payments or appreciation can end PMI sooner, and cancellation at 80% must be requested. FHA mortgage insurance (MIP) follows different rules and is not modeled.</p>
+    <p class="refs">
+      Existing calculators to cross-check:<br>
+      Bankrate amortization &mdash; <a href="https://www.bankrate.com/mortgages/amortization-calculator/" target="_blank" rel="noopener">bankrate.com/mortgages/amortization-calculator</a><br>
+      Fannie Mae &mdash; <a href="https://yourhome.fanniemae.com/calculators-tools/mortgage-calculator" target="_blank" rel="noopener">yourhome.fanniemae.com/calculators-tools/mortgage-calculator</a><br>
+      SmartAsset (adds taxes/insurance) &mdash; <a href="https://smartasset.com/mortgage/mortgage-calculator" target="_blank" rel="noopener">smartasset.com/mortgage/mortgage-calculator</a>
+    </p>
+    <p>General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const ids = ["amount","horizon","homeValue","pmiThresh","pmiBasis",
+               "rateA","termA","freqA","feesA","pmiA",
+               "rateB","termB","freqB","feesB","pmiB"];
+  ids.forEach(id => { const el=$(id); el.addEventListener("input", compute); el.addEventListener("change", compute); });
+
+  const money = x => "$" + (Math.round(x)).toLocaleString("en-US");
+  const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct = x => (x*100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:3}) + "%";
+
+  function calc(P, ratePct, termYears, m, fees, pmiRatePct, homeValue, thresh, basis){
+    const i = (ratePct/100)/m;              // periodic rate
+    const n = Math.round(termYears*m);      // total payments
+    if(!(P>0) || !(termYears>0) || !(m>0) || !Number.isFinite(ratePct) || ratePct<0) return null;
+    const M = i===0 ? P/n : P*i*Math.pow(1+i,n)/(Math.pow(1+i,n)-1);
+    const totalPaid = M*n;
+    const totalInterest = totalPaid - P;
+    const ear = Math.pow(1+i,m)-1;
+
+    // --- PMI schedule (Homeowners Protection Act rules) ---
+    // Premium charged each period while the SCHEDULED balance exceeds
+    // thresh x original home value, and only up to the amortization midpoint
+    // (HPA "final termination"). cumPMI[k] = PMI paid through period k.
+    const pmiRate = (Number.isFinite(pmiRatePct) && pmiRatePct>0) ? pmiRatePct/100 : 0;
+    const hv = Number.isFinite(homeValue) && homeValue>0 ? homeValue : 0;
+    const cumPMI = new Float64Array(n+1);
+    let pmiFirst = 0, pmiEndPeriod = 0, bal = P;
+    // PMI is only required when the loan starts above 80% LTV
+    const required = hv>0 && (P/hv) > 0.80 + 1e-12;
+    const cutoff = hv>0 ? thresh*hv : Infinity;   // no home value => cannot assess LTV
+    const midpoint = n/2;
+    for(let t=1; t<=n; t++){
+      let prem = 0;
+      if(pmiRate>0 && required && bal>cutoff && t<=midpoint){
+        prem = (basis==="fixed" ? P : bal) * pmiRate / m;
+        if(t===1) pmiFirst = prem;
+        pmiEndPeriod = t;
+      }
+      cumPMI[t] = cumPMI[t-1] + prem;
+      bal = i===0 ? bal - M : bal*(1+i) - M;      // roll scheduled balance forward
+    }
+    const totalPMI = cumPMI[n];
+    const pmiApplies = totalPMI > 0;
+    const initialLTV = hv>0 ? P/hv : null;
+
+    return {i,n,m,M,totalPaid,totalInterest,ear,fees,P,
+            cumPMI,totalPMI,pmiFirst,pmiEndPeriod,pmiApplies,initialLTV,
+            totalCost: totalPaid + fees + totalPMI};
+  }
+
+  // cost through a holding horizon of h years
+  function horizon(res, hYears){
+    const {i,n,m,M,P,fees,cumPMI} = res;
+    let k = Math.round(hYears*m);
+    if(k>n) k=n;
+    const bal = i===0 ? Math.max(P - M*k,0)
+                      : P*Math.pow(1+i,k) - M*(Math.pow(1+i,k)-1)/i;
+    const paid = M*k;
+    const interestPaid = paid - (P - bal);
+    const pmiPaid = cumPMI[k];
+    return {k, bal:Math.max(bal,0), paid, interestPaid, pmiPaid,
+            outlay: paid + pmiPaid + fees,     // cash out of pocket so far
+            costToClear: paid + pmiPaid + fees + Math.max(bal,0)}; // + payoff of remaining
+  }
+
+  function render(res, hData){
+    if(!res) return "<div class='row'><span class='k'>Enter valid inputs</span></div>";
+    let html = "";
+    html += rowHTML("Payment, P&amp;I (per period)", money2(res.M));
+    if(res.pmiApplies){
+      html += rowHTML("PMI (first period)", money2(res.pmiFirst));
+      html += rowHTML("Payment incl. PMI (first period)", money2(res.M + res.pmiFirst));
+    }
+    html += rowHTML("Effective annual rate", pct(res.ear));
+    if(res.initialLTV!==null) html += rowHTML("Initial LTV", pct(res.initialLTV));
+    html += rowHTML("Total interest (to term)", money(res.totalInterest));
+    if(res.pmiApplies){
+      html += rowHTML("PMI ends", "period " + res.pmiEndPeriod + " (yr " + (res.pmiEndPeriod/res.m).toFixed(1) + ")");
+      html += rowHTML("Total PMI", money(res.totalPMI));
+    } else {
+      html += rowHTML("PMI", "none");
+    }
+    html += rowHTML("Total cost (to term, incl. fees + PMI)", money(res.totalCost), true);
+    if(hData){
+      html += "<div class='row' style='padding-top:12px'><span class='k' style='font-weight:650;color:var(--ink)'>Through holding period</span><span class='v'></span></div>";
+      html += rowHTML("Payments made (P&amp;I)", money(hData.paid));
+      html += rowHTML("Interest paid", money(hData.interestPaid));
+      if(res.pmiApplies) html += rowHTML("PMI paid", money(hData.pmiPaid));
+      html += rowHTML("Remaining balance", money(hData.bal));
+      html += rowHTML("Cost to walk away (incl. fees + PMI)", money(hData.costToClear), true);
+    }
+    return html;
+  }
+  function rowHTML(k,v,total){
+    return `<div class="row${total?' total':''}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  }
+
+  function compute(){
+    const P = parseFloat($("amount").value);
+    const hRaw = $("horizon").value.trim();
+    const hYears = hRaw==="" ? null : parseFloat(hRaw);
+
+    const hv = parseFloat($("homeValue").value);
+    const thresh = parseFloat($("pmiThresh").value);
+    const premiumBasis = $("pmiBasis").value;
+
+    const A = calc(P, parseFloat($("rateA").value), parseFloat($("termA").value), parseFloat($("freqA").value), parseFloat($("feesA").value)||0, parseFloat($("pmiA").value), hv, thresh, premiumBasis);
+    const B = calc(P, parseFloat($("rateB").value), parseFloat($("termB").value), parseFloat($("freqB").value), parseFloat($("feesB").value)||0, parseFloat($("pmiB").value), hv, thresh, premiumBasis);
+
+    const useHorizon = hYears!==null && hYears>0;
+    const hA = (A && useHorizon) ? horizon(A, hYears) : null;
+    const hB = (B && useHorizon) ? horizon(B, hYears) : null;
+
+    $("outA").innerHTML = render(A, hA);
+    $("outB").innerHTML = render(B, hB);
+
+    // verdict
+    const vText = $("verdictText"), vAmt = $("verdictAmount"), vNote = $("horizonNote");
+    if(!A || !B){ vText.textContent="\u2014"; vAmt.textContent="\u2014"; vNote.textContent=""; return; }
+
+    let costA, costB, basis;
+    if(useHorizon){ costA=hA.costToClear; costB=hB.costToClear; basis=`over ${hYears} year(s), including PMI and payoff of the remaining balance`; }
+    else { costA=A.totalCost; costB=B.totalCost; basis="over the full term, including upfront fees and PMI"; }
+
+    const diff = Math.abs(costA-costB);
+    if(diff < 0.5){
+      vText.textContent = "The two offers cost the same.";
+      vAmt.innerHTML = money(costA);
+    } else {
+      const winner = costA<costB ? "A" : "B";
+      const wc = costA<costB ? "var(--a)" : "var(--b)";
+      vText.innerHTML = `Offer <strong style="color:${wc}">${winner}</strong> is cheaper by`;
+      vAmt.innerHTML = money(diff) + `<small>${winner==="A"?money(costA):money(costB)} total</small>`;
+    }
+    vNote.textContent = "Compared " + basis + ".";
+  }
+
+  compute();
+})();
+</script>
+</body>
+</html>
