@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<title>Mortgage Offer Comparison</title>
+<title>Mortgage Offer Analyzer</title>
 <style>
   :root{
     color-scheme: light dark;
@@ -16,6 +16,8 @@
     --line-strong:#c2c7bf;
     --a:#1f5162;        /* Offer A accent */
     --b:#9a5b23;        /* Offer B accent */
+    --c:#5c3f7a;        /* Offer C accent */
+    --d:#8c2f3f;        /* Offer D accent */
     --good:#2f6f4e;
     --verdict-bg:#161a1d;
     --verdict-fg:#f4f5f2;
@@ -33,6 +35,8 @@
       --line-strong:#454d55;
       --a:#6db3c9;        /* Offer A accent, lightened for contrast on dark */
       --b:#d9a06b;        /* Offer B accent, lightened for contrast on dark */
+      --c:#b294d1;        /* Offer C accent, lightened for contrast on dark */
+      --d:#e3899a;        /* Offer D accent, lightened for contrast on dark */
       --good:#7fc9a3;
       --verdict-bg:#0c0e10;
       --verdict-fg:#e8eaec;
@@ -79,14 +83,16 @@
   }
   .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(31,81,98,.15)}
 
-  /* offers grid */
-  .offers{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  /* offers grid — column count is set from script to match the offer count */
+  .offers{display:grid;grid-template-columns:1fr;gap:18px}
   .offer{
     background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:18px 20px 20px;box-shadow:var(--shadow);border-top:3px solid var(--accent);
   }
   .offer.a{--accent:var(--a)}
   .offer.b{--accent:var(--b)}
+  .offer.c{--accent:var(--c)}
+  .offer.d{--accent:var(--d)}
   .offer h2{
     font-size:13px;letter-spacing:.14em;text-transform:uppercase;
     margin:0 0 14px;color:var(--accent);font-weight:700;
@@ -114,6 +120,7 @@
     padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
     gap:16px;flex-wrap:wrap;
   }
+  .verdict[hidden]{display:none}   /* display:flex above would otherwise beat the UA [hidden] rule */
   .verdict .label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.65;margin:0 0 4px}
   .verdict .headline{font-size:17px;font-weight:600;margin:0}
   .verdict .amount{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -134,7 +141,7 @@
   @media (max-width:640px){
     body{padding:14px}
     .shared{grid-template-columns:1fr;padding:14px 16px}
-    .offers{grid-template-columns:1fr}
+    .offers{grid-template-columns:1fr!important}  /* beats the inline column count set by script */
     .inp{font-size:16px;padding:12px 12px}  /* 16px stops mobile browsers auto-zooming on focus */
     .row{font-size:14px}
     .verdict{padding:14px 16px}
@@ -151,11 +158,20 @@
   </noscript>
   <header>
     <p class="eyebrow">Mortgage tool</p>
-    <h1>Two-offer cost comparison</h1>
-    <p class="sub">Enter a shared loan amount, then the terms of each offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Excludes property taxes, homeowners insurance, and escrow.</p>
+    <h1>Mortgage cost analyzer</h1>
+    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Raise the offer count to put up to four offers side by side and see which costs least. Excludes property taxes, homeowners insurance, and escrow.</p>
   </header>
 
   <div class="shared">
+    <div class="field">
+      <label for="offerCount">Offers <span class="hint">&mdash; 1 analyzes a single offer; 2 or more compares them</span></label>
+      <select class="inp" id="offerCount">
+        <option value="1" selected>1 offer</option>
+        <option value="2">2 offers</option>
+        <option value="3">3 offers</option>
+        <option value="4">4 offers</option>
+      </select>
+    </div>
     <div class="field">
       <label for="amount">Loan amount (principal)</label>
       <input class="inp" id="amount" type="number" min="0" step="1000" value="400000" inputmode="decimal">
@@ -184,61 +200,35 @@
     </div>
   </div>
 
+  <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
   <div class="offers">
-    <!-- Offer A -->
     <div class="offer a">
       <h2><span class="dot"></span>Offer A</h2>
       <div class="field">
-        <label for="rateA">Annual interest rate (%)</label>
-        <input class="inp" id="rateA" type="number" min="0" step="0.001" value="6.25" inputmode="decimal">
+        <label for="rate0">Annual interest rate (%)</label>
+        <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.25" inputmode="decimal">
       </div>
       <div class="field">
-        <label for="termA">Term (years)</label>
-        <input class="inp" id="termA" type="number" min="1" step="1" value="30" inputmode="decimal">
+        <label for="term0">Term (years)</label>
+        <input class="inp" id="term0" type="number" min="1" step="1" value="30" inputmode="decimal">
       </div>
       <div class="field">
-        <label for="freqA">Payments per year</label>
-        <input class="inp" id="freqA" type="number" min="1" step="1" value="12" inputmode="decimal">
+        <label for="freq0">Payments per year</label>
+        <input class="inp" id="freq0" type="number" min="1" step="1" value="12" inputmode="decimal">
       </div>
       <div class="field">
-        <label for="feesA">Upfront fees + points ($)</label>
-        <input class="inp" id="feesA" type="number" min="0" step="100" value="3000" inputmode="decimal">
+        <label for="fees0">Upfront fees + points ($)</label>
+        <input class="inp" id="fees0" type="number" min="0" step="100" value="3000" inputmode="decimal">
       </div>
       <div class="field">
-        <label for="pmiA">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
-        <input class="inp" id="pmiA" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
+        <label for="pmi0">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
+        <input class="inp" id="pmi0" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
       </div>
-      <div class="readout" id="outA"></div>
-    </div>
-
-    <!-- Offer B -->
-    <div class="offer b">
-      <h2><span class="dot"></span>Offer B</h2>
-      <div class="field">
-        <label for="rateB">Annual interest rate (%)</label>
-        <input class="inp" id="rateB" type="number" min="0" step="0.001" value="5.99" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="termB">Term (years)</label>
-        <input class="inp" id="termB" type="number" min="1" step="1" value="30" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="freqB">Payments per year</label>
-        <input class="inp" id="freqB" type="number" min="1" step="1" value="12" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="feesB">Upfront fees + points ($)</label>
-        <input class="inp" id="feesB" type="number" min="0" step="100" value="6500" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="pmiB">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
-        <input class="inp" id="pmiB" type="number" min="0" step="0.01" value="0.72" inputmode="decimal">
-      </div>
-      <div class="readout" id="outB"></div>
+      <div class="readout" id="out0"></div>
     </div>
   </div>
 
-  <div class="verdict" id="verdict">
+  <div class="verdict" id="verdict" hidden>
     <div>
       <p class="label">Verdict</p>
       <p class="headline" id="verdictText">&mdash;</p>
@@ -263,10 +253,15 @@
 <script>
 (function(){
   const $ = id => document.getElementById(id);
-  const ids = ["amount","horizon","homeValue","pmiThresh","pmiBasis",
-               "rateA","termA","freqA","feesA","pmiA",
-               "rateB","termB","freqB","feesB","pmiB"];
-  ids.forEach(id => { const el=$(id); el.addEventListener("input", compute); el.addEventListener("change", compute); });
+  const LETTERS = ["A","B","C","D"];
+  const offers = document.querySelector(".offers");
+  // Captured before any edit or compute, so clones carry the default value
+  // attributes and an empty readout.
+  const card0HTML = offers.firstElementChild.outerHTML;
+
+  const onEdit = e => e.target.id === "offerCount" ? renderOffers(+e.target.value) : compute();
+  document.addEventListener("input", onEdit);
+  document.addEventListener("change", onEdit);
 
   const money = x => "$" + (Math.round(x)).toLocaleString("en-US");
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -359,47 +354,113 @@
     return `<div class="row${total?' total':''}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
   }
 
+  // Offer A's markup is the template for B/C/D: rewrite the id/for index,
+  // the accent class, and the heading letter.
+  function cardHTML(i){
+    const L = LETTERS[i];
+    return card0HTML
+      .replace(/(id|for)="(\w+?)0"/g, `$1="$2${i}"`)
+      .replace('class="offer a"', `class="offer ${L.toLowerCase()}"`)
+      .replace(">Offer A<", ">Offer " + L + "<");
+  }
+
+  // Add/remove only at the tail, so existing cards keep their entered values.
+  function renderOffers(n){
+    n = Math.min(LETTERS.length, Math.max(1, Math.round(n) || 1));
+    while(offers.children.length < n) offers.insertAdjacentHTML("beforeend", cardHTML(offers.children.length));
+    while(offers.children.length > n) offers.lastElementChild.remove();
+    offers.style.gridTemplateColumns = `repeat(${n},1fr)`;
+    $("verdict").hidden = n === 1;
+    compute();
+  }
+
   function compute(){
     const P = parseFloat($("amount").value);
     const hRaw = $("horizon").value.trim();
     const hYears = hRaw==="" ? null : parseFloat(hRaw);
+    const useHorizon = hYears!==null && hYears>0;
 
     const hv = parseFloat($("homeValue").value);
     const thresh = parseFloat($("pmiThresh").value);
     const premiumBasis = $("pmiBasis").value;
 
-    const A = calc(P, parseFloat($("rateA").value), parseFloat($("termA").value), parseFloat($("freqA").value), parseFloat($("feesA").value)||0, parseFloat($("pmiA").value), hv, thresh, premiumBasis);
-    const B = calc(P, parseFloat($("rateB").value), parseFloat($("termB").value), parseFloat($("freqB").value), parseFloat($("feesB").value)||0, parseFloat($("pmiB").value), hv, thresh, premiumBasis);
-
-    const useHorizon = hYears!==null && hYears>0;
-    const hA = (A && useHorizon) ? horizon(A, hYears) : null;
-    const hB = (B && useHorizon) ? horizon(B, hYears) : null;
-
-    $("outA").innerHTML = render(A, hA);
-    $("outB").innerHTML = render(B, hB);
-
-    // verdict
-    const vText = $("verdictText"), vAmt = $("verdictAmount"), vNote = $("horizonNote");
-    if(!A || !B){ vText.textContent="\u2014"; vAmt.textContent="\u2014"; vNote.textContent=""; return; }
-
-    let costA, costB, basis;
-    if(useHorizon){ costA=hA.costToClear; costB=hB.costToClear; basis=`over ${hYears} year(s), including PMI and payoff of the remaining balance`; }
-    else { costA=A.totalCost; costB=B.totalCost; basis="over the full term, including upfront fees and PMI"; }
-
-    const diff = Math.abs(costA-costB);
-    if(diff < 0.5){
-      vText.textContent = "The two offers cost the same.";
-      vAmt.innerHTML = money(costA);
-    } else {
-      const winner = costA<costB ? "A" : "B";
-      const wc = costA<costB ? "var(--a)" : "var(--b)";
-      vText.innerHTML = `Offer <strong style="color:${wc}">${winner}</strong> is cheaper by`;
-      vAmt.innerHTML = money(diff) + `<small>${winner==="A"?money(costA):money(costB)} total</small>`;
+    const costs = [];   // one entry per offer that computed; invalid offers are skipped
+    for(let i=0; i<offers.children.length; i++){
+      const res = calc(P, parseFloat($("rate"+i).value), parseFloat($("term"+i).value), parseFloat($("freq"+i).value), parseFloat($("fees"+i).value)||0, parseFloat($("pmi"+i).value), hv, thresh, premiumBasis);
+      const h = (res && useHorizon) ? horizon(res, hYears) : null;
+      $("out"+i).innerHTML = render(res, h);
+      if(res) costs.push({i, cost: useHorizon ? h.costToClear : res.totalCost});
     }
-    vNote.textContent = "Compared " + basis + ".";
+    verdict(costs, useHorizon, hYears);
   }
 
-  compute();
+  function verdict(costs, useHorizon, hYears){
+    if($("verdict").hidden) return;              // single offer: nothing to compare
+    const vText = $("verdictText"), vAmt = $("verdictAmount"), vNote = $("horizonNote");
+    if(costs.length < 2){ vText.textContent="\u2014"; vAmt.textContent="\u2014"; vNote.textContent=""; return; }
+
+    costs.sort((x,y) => x.cost - y.cost);
+    const best = costs[0], diff = costs[1].cost - best.cost;
+    if(diff < 0.5){
+      vText.textContent = "The cheapest offers cost the same.";
+      vAmt.innerHTML = money(best.cost);
+    } else {
+      const L = LETTERS[best.i];
+      vText.innerHTML = `Offer <strong style="color:var(--${L.toLowerCase()})">${L}</strong> is cheapest by`;
+      vAmt.innerHTML = money(diff) + `<small>${money(best.cost)} total</small>`;
+    }
+    vNote.textContent = "Compared " + (useHorizon
+      ? `over ${hYears} year(s), including PMI and payoff of the remaining balance`
+      : "over the full term, including upfront fees and PMI") + ".";
+  }
+
+  // Self-check: open the file with #selftest to run it. Throws on failure.
+  function demo(){
+    const ok = (c,m) => { if(!c) throw new Error("selftest failed: " + m); };
+    const near = (a,b,t) => Math.abs(a-b) <= t;
+
+    // math is unchanged: pinned against the pre-change Offer A defaults
+    const r = calc(400000, 6.25, 30, 12, 3000, 0.55, 450000, 0.78, "declining");
+    ok(near(r.M, 2462.8688, 0.001), "payment " + r.M);
+    ok(near(r.totalInterest, 486632.769, 0.01), "total interest " + r.totalInterest);
+    ok(near(r.totalPMI, 17144.369, 0.01), "total PMI " + r.totalPMI);
+    ok(r.pmiEndPeriod === 99, "PMI end period " + r.pmiEndPeriod);
+    ok(near(r.totalCost, 906777.137, 0.01), "total cost " + r.totalCost);
+
+    // clone rewrite reaches every id
+    renderOffers(4);
+    ok(offers.children.length === 4, "card count " + offers.children.length);
+    ["rate","term","freq","fees","pmi","out"].forEach(k => ok($(k+"3"), "missing " + k + "3"));
+    ok($("verdict").hidden === false, "verdict hidden at count 4");
+
+    // count changes preserve surviving cards, re-added cards reset to defaults
+    $("rate0").value = "5.5";
+    renderOffers(4);
+    ok($("rate0").value === "5.5", "rate0 lost on raise");
+    renderOffers(2);
+    ok($("rate0").value === "5.5", "rate0 lost on lower");
+    ok($("rate1").value === "6.25", "rate1 not default: " + $("rate1").value);
+
+    // verdict ranks all offers, not just the first two
+    renderOffers(3);
+    $("rate0").value = "7"; $("rate1").value = "5"; $("rate2").value = "6";
+    compute();
+    ok(/>B</.test($("verdictText").innerHTML), "verdict text: " + $("verdictText").innerHTML);
+    ok($("verdictAmount").textContent.startsWith("$"), "verdict amount " + $("verdictAmount").textContent);
+    renderOffers(1);
+    ok($("verdict").hidden === true, "verdict shown at count 1");
+
+    offers.innerHTML = card0HTML;                 // undo the edits demo made
+    renderOffers(+$("offerCount").value);
+    console.log("selftest passed");
+    document.title = "selftest passed";           // readable from a headless --dump-dom run
+  }
+
+  renderOffers(+$("offerCount").value);
+  if(location.hash === "#selftest"){
+    try { demo(); }
+    catch(e){ console.error(e); document.title = "SELFTEST FAILED: " + e.message; }
+  }
 })();
 </script>
 </body>
