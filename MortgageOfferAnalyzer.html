@@ -57,9 +57,6 @@
     -webkit-font-smoothing:antialiased;
     padding:clamp(16px,4vw,48px);
   }
-  /* .wrap is an unconstrained container: the page fills the window, inset only
-     by the body padding above. Restore max-width here to re-center the column. */
-
   header{margin-bottom:28px}
   h1{
     font-size:clamp(22px,3.4vw,30px);font-weight:650;margin:0 0 6px;
@@ -157,7 +154,6 @@
 </style>
 </head>
 <body>
-<div class="wrap">
   <noscript>
     <div style="border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:14px;line-height:1.5">
       <strong>Calculations are off.</strong> This viewer has JavaScript disabled &mdash; email apps block scripts in attachments, so totals and payments cannot compute here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); no internet connection is needed.
@@ -346,7 +342,6 @@
 
     <p style="margin-top:16px">General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
   </footer>
-</div>
 
 <script>
 (function(){
@@ -357,11 +352,13 @@
   // attributes and an empty readout.
   const card0HTML = offers.firstElementChild.outerHTML;
 
-  const onEdit = e => e.target.id === "offerCount" ? renderOffers(+e.target.value) : compute();
-  document.addEventListener("input", onEdit);
-  document.addEventListener("change", onEdit);
+  // "input" fires on selects too, so it covers every control here.
+  document.addEventListener("input", e =>
+    e.target.id === "offerCount" ? renderOffers(+e.target.value) : compute());
 
-  const LOCK_NOTE = "PMI does not apply when the loan starts at or below 80% LTV, so the rate is fixed at 0.";
+  // PMI is only required when the loan starts above 80% LTV. calc() and the UI lock
+  // must agree on this, so both read it from here.
+  const pmiOwed = (P,hv) => hv>0 && P>0 && P/hv > 0.80 + 1e-12;
 
   // Definitions are written once, in the footer glossary; tooltips are read back out of it so
   // the two cannot drift. Ordered specific before general in the markup — first match wins.
@@ -412,8 +409,7 @@
     const hv = Number.isFinite(homeValue) && homeValue>0 ? homeValue : 0;
     const cumPMI = new Float64Array(n+1);
     let pmiFirst = 0, pmiEndPeriod = 0, bal = P;
-    // PMI is only required when the loan starts above 80% LTV
-    const required = hv>0 && (P/hv) > 0.80 + 1e-12;
+    const required = pmiOwed(P, hv);
     const cutoff = hv>0 ? thresh*hv : Infinity;   // no home value => cannot assess LTV
     const midpoint = n/2;
     for(let t=1; t<=n; t++){
@@ -424,13 +420,13 @@
         pmiEndPeriod = t;
       }
       cumPMI[t] = cumPMI[t-1] + prem;
-      bal = i===0 ? bal - M : bal*(1+i) - M;      // roll scheduled balance forward
+      bal = bal*(1+i) - M;                        // roll scheduled balance forward
     }
     const totalPMI = cumPMI[n];
     const pmiApplies = totalPMI > 0;
     const initialLTV = hv>0 ? P/hv : null;
 
-    return {i,n,m,M,totalPaid,totalInterest,ear,fees,P,
+    return {i,n,m,M,totalInterest,ear,fees,P,
             cumPMI,totalPMI,pmiFirst,pmiEndPeriod,pmiApplies,initialLTV,
             totalCost: totalPaid + fees + totalPMI};
   }
@@ -446,8 +442,7 @@
     const paid = M*k;
     const interestPaid = paid - (P - bal);
     const pmiPaid = cumPMI[k];
-    return {k, bal:Math.max(bal,0), paid, interestPaid, pmiPaid,
-            outlay: paid + pmiPaid + fees,     // cash out of pocket so far
+    return {bal:Math.max(bal,0), paid, interestPaid, pmiPaid,
             costToClear: paid + pmiPaid + fees + Math.max(bal,0)}; // + payoff of remaining
   }
 
@@ -506,17 +501,16 @@
 
   function compute(){
     const P = parseFloat($("amount").value);
-    const hRaw = $("horizon").value.trim();
-    const hYears = hRaw==="" ? null : parseFloat(hRaw);
-    const useHorizon = hYears!==null && hYears>0;
+    const hYears = parseFloat($("horizon").value);   // blank => NaN => no horizon
+    const useHorizon = hYears > 0;
 
     const hv = parseFloat($("homeValue").value);
     const thresh = parseFloat($("pmiThresh").value);
     const premiumBasis = $("pmiBasis").value;
 
-    // Same test calc() uses to decide PMI is owed. Mirrored into the UI so the input cannot
-    // hold a rate the math discards: at or below 80% LTV the field reads 0 and is locked.
-    const pmiRequired = hv > 0 && P > 0 && (P/hv) > 0.80 + 1e-12;
+    // Mirrored into the UI so the input cannot hold a rate the math discards:
+    // at or below 80% LTV the field reads 0 and is locked.
+    const pmiRequired = pmiOwed(P, hv);
 
     const costs = [];   // one entry per offer that computed; invalid offers are skipped
     for(let i=0; i<offers.children.length; i++){
@@ -525,7 +519,7 @@
         pmiEl.dataset.prev = pmiEl.value;       // stash survives the lock, restored on unlock
         pmiEl.value = "0";
         pmiEl.disabled = true;
-        pmiEl.title = LOCK_NOTE;
+        pmiEl.title = "PMI does not apply when the loan starts at or below 80% LTV, so the rate is fixed at 0.";
       } else if(pmiRequired && pmiEl.disabled){
         pmiEl.value = pmiEl.dataset.prev ?? pmiEl.value;
         pmiEl.disabled = false;
