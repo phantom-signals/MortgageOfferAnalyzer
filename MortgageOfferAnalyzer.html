@@ -81,6 +81,7 @@
   .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(31,81,98,.15)}
   /* opacity:1 overrides the WebKit/Blink default wash-out, which is illegible on the dark card */
   .inp:disabled{background:var(--line);color:var(--slate);cursor:not-allowed;opacity:1}
+  #copyLink{cursor:pointer}
 
   /* offers grid — column count is set from script to match the offer count */
   .offers{display:grid;grid-template-columns:1fr;gap:18px}
@@ -199,6 +200,12 @@
         <option value="declining" selected title="Premium = current scheduled balance x annual PMI rate / 12, so the dollar amount falls as the loan amortizes. Common convention.">Recalculated on declining balance</option>
         <option value="fixed" title="Premium = original loan amount x annual PMI rate / 12, a constant dollar amount until PMI ends. Used by some policies.">Fixed on original loan amount</option>
       </select>
+    </div>
+    <!-- No <label>: the button labels itself. The hint is always visible, not a tooltip —
+         this page is served on its own, so a note in the repository README reaches nobody. -->
+    <div class="field">
+      <button class="inp" id="copyLink" type="button">Copy link</button>
+      <span class="hint">The link carries the figures you entered &mdash; loan amount, home value, rates, fees. Share it only with people you want to see them.</span>
     </div>
   </div>
 
@@ -341,6 +348,7 @@
     </dl>
 
     <p style="margin-top:16px">General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
+    <p>Questions, comments, feature requests, or bug reports &mdash; <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">github.com/phantom-signals/MortgageOfferAnalyzer</a></p>
   </footer>
 
 <script>
@@ -359,6 +367,45 @@
   // PMI is only required when the loan starts above 80% LTV. calc() and the UI lock
   // must agree on this, so both read it from here.
   const pmiOwed = (P,hv) => hv>0 && P>0 && P/hv > 0.80 + 1e-12;
+
+  // --- share link ---------------------------------------------------------
+  // Every value the tool holds lives in these controls, so the hash is the whole
+  // state. The tag names matter: #copyLink also carries .inp for its styling and
+  // must never be serialized or written to.
+  const INPUTS = "input.inp, select.inp";
+
+  const serialize = () => new URLSearchParams(
+    [...document.querySelectorAll(INPUTS)].map(el => [el.id, el.value])).toString();
+
+  // A hash can be crafted by anyone, so it is untrusted input: a key is applied only
+  // when it names an existing control, values go through .value and never markup, and
+  // anything unrecognized is dropped without an error. Bad numbers are already handled
+  // downstream — calc() returns null and the readout says so.
+  function restore(str){
+    const params = new URLSearchParams(str);
+    const apply = () => {
+      for(const [k,v] of params){
+        const el = $(k);
+        if(el && el.matches(INPUTS)) el.value = v;
+      }
+    };
+    // Shared fields first: renderOffers() computes, and compute() locks or unlocks the
+    // PMI inputs from the LTV, restoring each card's stashed value over anything set
+    // before it. Applying again after the cards exist puts the encoded values back.
+    apply();
+    renderOffers(+$("offerCount").value);   // per-offer ids do not exist until cards are cloned
+    apply();
+    compute();
+  }
+
+  $("copyLink").addEventListener("click", () => {
+    const btn = $("copyLink");
+    location.hash = serialize();            // set first: the link is recoverable by hand even if the copy fails
+    (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject())
+      .then(() => btn.textContent = "Link copied")
+      .catch(() => btn.textContent = "Link is in the address bar")   // file:// is not a secure context in every browser
+      .then(() => setTimeout(() => btn.textContent = "Copy link", 2000));
+  });
 
   // Definitions are written once, in the footer glossary; tooltips are read back out of it so
   // the two cannot drift. Ordered specific before general in the markup — first match wins.
@@ -659,14 +706,54 @@
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
 
+    // share link survives a full round trip through a string, values and results alike
+    const snapshot = () => [...document.querySelectorAll(INPUTS)].map(el => el.id + "=" + el.value).join(",");
+    $("offerCount").value = "3"; renderOffers(3);
+    $("amount").value="325000"; $("homeValue").value="400000"; $("horizon").value="7";
+    $("pmiThresh").value="0.80"; $("pmiBasis").value="fixed";
+    $("rate0").value="6.1"; $("term0").value="30"; $("freq0").value="12"; $("fees0").value="2500"; $("pmi0").value="0.51";
+    $("rate1").value="5.9"; $("term1").value="15"; $("freq1").value="26"; $("fees1").value="4100"; $("pmi1").value="0.63";
+    $("rate2").value="6.4"; $("term2").value="20"; $("freq2").value="12"; $("fees2").value="0";    $("pmi2").value="0.44";
+    compute();
+    const saved = serialize(), fieldsBefore = snapshot(), costBefore = $("out2").lastElementChild.textContent;
+
+    // wreck every field, including the offer count and the LTV that drives the PMI lock
+    $("offerCount").value = "1"; renderOffers(1);
+    $("amount").value="100000"; $("homeValue").value="900000"; $("horizon").value="";
+    $("pmiThresh").value="0.78"; $("pmiBasis").value="declining";
+    $("rate0").value="1"; $("term0").value="10"; $("freq0").value="1"; $("fees0").value="9";
+    compute();
+    ok($("pmi0").disabled === true, "PMI not locked before restore");   // stash now holds 0, and must not win
+
+    const hashBefore = location.hash;
+    restore(saved);
+    ok(offers.children.length === 3, "restored card count " + offers.children.length);
+    ok(snapshot() === fieldsBefore, "round trip lost values:\n" + snapshot() + "\nvs\n" + fieldsBefore);
+    ok($("out2").lastElementChild.textContent === costBefore,
+       "round trip readout " + $("out2").lastElementChild.textContent + " vs " + costBefore);
+    ok(location.hash === hashBefore, "restore wrote location.hash");
+
+    // untrusted hash content is dropped, never applied and never fatal
+    restore("garbage");
+    ok(snapshot() === fieldsBefore, "garbage hash changed values");
+    restore("nosuchkey=1&verdictText=x&glossary=x");
+    ok(snapshot() === fieldsBefore, "unknown key changed values");
+    ok($("verdictText").textContent !== "x" && $("glossary").value === undefined, "non-input id was written");
+    ok($("out2").querySelector(".row"), "page stopped computing after a bad hash");
+    ok(location.hash === hashBefore, "bad hash wrote location.hash");
+
+    $("offerCount").value = "1";
     $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";
+    $("pmiThresh").value = "0.78"; $("pmiBasis").value = "declining";
     offers.innerHTML = card0HTML;                 // undo the edits demo made
     renderOffers(+$("offerCount").value);
     console.log("selftest passed");
     document.title = "selftest passed";           // readable from a headless --dump-dom run
   }
 
-  renderOffers(+$("offerCount").value);
+  // "=" is what separates a state hash from every other hash, #selftest included.
+  const boot = location.hash.slice(1);
+  if(boot.includes("=")) restore(boot); else renderOffers(+$("offerCount").value);
   if(location.hash === "#selftest"){
     try { demo(); }
     catch(e){ console.error(e); document.title = "SELFTEST FAILED: " + e.message; }

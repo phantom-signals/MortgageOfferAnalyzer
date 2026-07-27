@@ -18,6 +18,14 @@ sell or refinance instead of running to full term.
 Every input and result label has a hover definition, and the footer carries the
 full glossary.
 
+## Share a comparison
+
+**Copy link** writes every entered value into the URL and copies it. Opening
+that URL restores the offers exactly, so a comparison can be bookmarked or sent
+to someone. The figures ride in the link in plain text — loan amount, home
+value, rates, fees — so treat a shared link the way you would treat the numbers
+themselves. Nothing is uploaded; the link is the only copy.
+
 ## What it computes
 
 Payment is the standard amortization formula:
