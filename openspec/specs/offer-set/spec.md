@@ -68,7 +68,7 @@ Changing the offer count SHALL NOT discard input values in the cards that remain
 - **THEN** the new Offer B is populated with default values, not the previously entered ones
 
 ### Requirement: Verdict ranks every displayed offer
-With two or more offers, the verdict SHALL name the cheapest offer on the active comparison basis and SHALL state the gap between it and the next-cheapest offer.
+With two or more offers, the verdict SHALL name the cheapest offer on the active comparison basis and SHALL state the gap between it and the next-cheapest offer. When two or more offers tie for cheapest, the verdict SHALL name every tied offer by its letter instead of stating a gap.
 
 #### Scenario: Three offers, distinct costs
 - **WHEN** the offer count is 3 and the three offers have distinct total costs
@@ -76,10 +76,25 @@ With two or more offers, the verdict SHALL name the cheapest offer on the active
 - **AND** the amount shown is the difference between the cheapest and the second-cheapest offer
 - **AND** the cheapest offer's own total cost is shown alongside the difference
 
-#### Scenario: Tie for cheapest
-- **WHEN** two or more offers tie for the lowest cost within half a dollar
-- **THEN** the verdict states that the cheapest offers cost the same
-- **AND** shows that shared cost
+#### Scenario: Two offers tie for cheapest
+- **WHEN** two offers tie for the lowest cost within half a dollar
+- **THEN** the verdict names both offers by letter, joined by "and"
+- **AND** states that they cost the same
+- **AND** shows that shared cost as the amount
+
+#### Scenario: Three or more offers tie for cheapest
+- **WHEN** three or more offers tie for the lowest cost within half a dollar
+- **THEN** the verdict names every tied offer by letter, comma-separated with "and" before the last
+- **AND** shows the shared cost as the amount
+
+#### Scenario: Tie among cheapest with a costlier offer present
+- **WHEN** the offer count is 3, two offers tie for the lowest cost within half a dollar, and the third costs more
+- **THEN** the verdict names only the two tied offers
+- **AND** the costlier offer is not named
+
+#### Scenario: Near-tie is not a tie
+- **WHEN** the cheapest and second-cheapest offers differ by more than half a dollar
+- **THEN** the verdict names one cheapest offer and states the gap, as it does for distinct costs
 
 #### Scenario: One offer has invalid inputs
 - **WHEN** the offer count is 3 and one card's inputs are incomplete or invalid
@@ -91,7 +106,7 @@ With two or more offers, the verdict SHALL name the cheapest offer on the active
 - **THEN** the verdict headline and amount both show an em dash, as they do today
 
 ### Requirement: Each offer card is visually distinguishable
-Every displayed offer card SHALL carry a distinct accent color applied to its top border, heading, dot, and focused-input outline, in both light and dark color schemes.
+Every displayed offer card SHALL carry a distinct accent color applied to its top border, heading, dot, and focused-input outline, in both light and dark color schemes. Every offer letter printed in the verdict SHALL be rendered in that offer's accent color.
 
 #### Scenario: Four offers displayed
 - **WHEN** the offer count is 4
@@ -101,6 +116,10 @@ Every displayed offer card SHALL carry a distinct accent color applied to its to
 #### Scenario: Verdict names a winner by color
 - **WHEN** the verdict names the cheapest offer
 - **THEN** the offer letter in the verdict is rendered in that offer's accent color
+
+#### Scenario: Verdict names tied offers by color
+- **WHEN** the verdict names two or more tied offers
+- **THEN** each named letter is rendered in that offer's own accent color
 
 ### Requirement: Shared inputs and per-offer math are unchanged
 Loan amount, holding period, home value, PMI removal rule, and PMI premium basis SHALL remain single shared inputs applied identically to every offer. The per-offer payment, effective annual rate, PMI schedule, total cost, and holding-period figures SHALL be computed by the existing formulas without modification.

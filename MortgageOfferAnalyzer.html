@@ -540,14 +540,18 @@
     if(costs.length < 2){ vText.textContent="\u2014"; vAmt.textContent="\u2014"; vNote.textContent=""; return; }
 
     costs.sort((x,y) => x.cost - y.cost);
-    const best = costs[0], diff = costs[1].cost - best.cost;
-    if(diff < 0.5){
-      vText.textContent = "The cheapest offers cost the same.";
+    const best = costs[0];
+    const name = c => { const L = LETTERS[c.i]; return `<strong style="color:var(--${L.toLowerCase()})">${L}</strong>`; };
+    // Tied against the cheapest, not against each other: chaining would let a
+    // dollar-wide spread read as a tie and would depend on sort order.
+    const tied = costs.filter(c => c.cost - best.cost < 0.5).map(name);
+    if(tied.length > 1){
+      // "A and B", "A, B, and C" — serial comma comes from the en list format.
+      vText.innerHTML = `Offers ${new Intl.ListFormat("en").format(tied)} cost the same.`;
       vAmt.innerHTML = money(best.cost);
     } else {
-      const L = LETTERS[best.i];
-      vText.innerHTML = `Offer <strong style="color:var(--${L.toLowerCase()})">${L}</strong> is cheapest by`;
-      vAmt.innerHTML = money(diff) + `<small>${money(best.cost)} total</small>`;
+      vText.innerHTML = `Offer ${name(best)} is cheapest by`;
+      vAmt.innerHTML = money(costs[1].cost - best.cost) + `<small>${money(best.cost)} total</small>`;
     }
     vNote.textContent = "Compared " + (useHorizon
       ? `over ${hYears} year(s), including PMI and payoff of the remaining balance`
@@ -597,7 +601,21 @@
     compute();
     ok(/>B</.test($("verdictText").innerHTML), "verdict text: " + $("verdictText").innerHTML);
     ok($("verdictAmount").textContent.startsWith("$"), "verdict amount " + $("verdictAmount").textContent);
-    renderOffers(1);
+
+    // ties name every offer that ties, and only those
+    const vTxt = () => $("verdictText").textContent;
+    $("rate0").value = "5"; $("rate1").value = "5"; $("rate2").value = "6";
+    compute();
+    ok(vTxt() === "Offers A and B cost the same.", "two-way tie text: " + vTxt());
+    const vHTML = $("verdictText").innerHTML;                // letters keep their accent color
+    ok(/>A</.test(vHTML) && />B</.test(vHTML), "tie letters not colored: " + vHTML);
+    $("rate2").value = "5"; compute();
+    ok(vTxt() === "Offers A, B, and C cost the same.", "three-way tie text: " + vTxt());
+    $("fees1").value = "3001"; $("fees2").value = "3002";   // $1 apart: past the 50-cent tolerance
+    compute();
+    ok(vTxt() === "Offer A is cheapest by", "dollar gap read as tie: " + vTxt());
+    ok($("verdictAmount").firstChild.textContent === "$1", "gap amount " + $("verdictAmount").firstChild.textContent);
+    renderOffers(1);                                         // drops the cards demo just edited
     ok($("verdict").hidden === true, "verdict shown at count 1");
 
     // PMI input lock mirrors calc()'s 80% LTV test
