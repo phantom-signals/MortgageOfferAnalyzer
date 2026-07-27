@@ -72,7 +72,7 @@
   }
   .field{display:flex;flex-direction:column;gap:6px}
   .field label{font-size:12px;font-weight:600;color:var(--slate);letter-spacing:.02em}
-  .field .hint{font-size:11px;color:var(--slate);font-weight:400}
+  .hint{font-size:11px;color:var(--slate);font-weight:400}
   .inp{
     font-family:var(--mono);font-size:15px;color:var(--ink);
     background:var(--paper);border:1px solid var(--line-strong);border-radius:8px;
@@ -81,7 +81,6 @@
   .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(31,81,98,.15)}
   /* opacity:1 overrides the WebKit/Blink default wash-out, which is illegible on the dark card */
   .inp:disabled{background:var(--line);color:var(--slate);cursor:not-allowed;opacity:1}
-  #copyLink{cursor:pointer}
 
   /* offers grid — column count is set from script to match the offer count */
   .offers{display:grid;grid-template-columns:1fr;gap:18px}
@@ -125,6 +124,11 @@
   .verdict .headline{font-size:17px;font-weight:600;margin:0}
   .verdict .amount{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
   .verdict .amount small{font-size:12px;opacity:.7;font-weight:500;display:block;text-align:right}
+
+  /* share control — .inp carries the look; min-width holds the box while the label swaps */
+  .share{text-align:center;margin:18px 0 6px}
+  .share .inp{width:auto;min-width:14em;background:var(--card);cursor:pointer}
+  .share .hint{display:block;max-width:52ch;margin:6px auto 0}
 
   .section-label{
     font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);
@@ -201,12 +205,6 @@
         <option value="fixed" title="Premium = original loan amount x annual PMI rate / 12, a constant dollar amount until PMI ends. Used by some policies.">Fixed on original loan amount</option>
       </select>
     </div>
-    <!-- No <label>: the button labels itself. The hint is always visible, not a tooltip —
-         this page is served on its own, so a note in the repository README reaches nobody. -->
-    <div class="field">
-      <button class="inp" id="copyLink" type="button">Copy link</button>
-      <span class="hint">The link carries the figures you entered &mdash; loan amount, home value, rates, fees. Share it only with people you want to see them.</span>
-    </div>
   </div>
 
   <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
@@ -244,6 +242,12 @@
       <p class="horizon-note" id="horizonNote"></p>
     </div>
     <div class="amount" id="verdictAmount">&mdash;</div>
+  </div>
+
+  <!-- Sibling of the verdict, not a child: the verdict is hidden at one offer, which is still worth sharing. -->
+  <div class="share">
+    <button class="inp" id="copyLink" type="button">Copy analysis link</button>
+    <span class="hint">The link carries the figures you entered &mdash; loan amount, home value, rates, fees. Share it only with people you want to see them.</span>
   </div>
 
   <footer>
@@ -368,10 +372,8 @@
   // must agree on this, so both read it from here.
   const pmiOwed = (P,hv) => hv>0 && P>0 && P/hv > 0.80 + 1e-12;
 
-  // --- share link ---------------------------------------------------------
-  // Every value the tool holds lives in these controls, so the hash is the whole
-  // state. The tag names matter: #copyLink also carries .inp for its styling and
-  // must never be serialized or written to.
+  // Whole state, and only state: the tag names keep #copyLink, which wears .inp for its look,
+  // out of the hash and out of restore().
   const INPUTS = "input.inp, select.inp";
 
   const serialize = () => new URLSearchParams(
@@ -398,13 +400,15 @@
     compute();
   }
 
-  $("copyLink").addEventListener("click", () => {
-    const btn = $("copyLink");
+  // Label is read once, here: the markup is the only place it is written, so renaming the
+  // button cannot leave a stale name behind in the restore timer.
+  const copyBtn = $("copyLink"), copyLabel = copyBtn.textContent;
+  copyBtn.addEventListener("click", () => {
     location.hash = serialize();            // set first: the link is recoverable by hand even if the copy fails
     (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject())
-      .then(() => btn.textContent = "Link copied")
-      .catch(() => btn.textContent = "Link is in the address bar")   // file:// is not a secure context in every browser
-      .then(() => setTimeout(() => btn.textContent = "Copy link", 2000));
+      .then(() => copyBtn.textContent = "Link copied")
+      .catch(() => copyBtn.textContent = "In the address bar")   // file:// is not a secure context in every browser
+      .then(() => setTimeout(() => copyBtn.textContent = copyLabel, 2000));
   });
 
   // Definitions are written once, in the footer glossary; tooltips are read back out of it so

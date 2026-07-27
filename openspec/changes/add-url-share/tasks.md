@@ -7,13 +7,13 @@
 
 ## 2. Copy-link control
 
-- [ ] 2.1 Add a "Copy analysis link" button, id `copyLink`, in its own centered block placed after `<div class="verdict">` and before `<footer>` — a sibling of the verdict, never a child of it, since `.verdict` is hidden at one offer and a single-offer link must still be shareable
-- [ ] 2.1a Below the button, centered, add the hint stating the link embeds the entered figures (loan amount, home value, rates) — visible without hover, since the hosted page never shows the README
-- [ ] 2.1b Add the block's CSS: centered text, intrinsic-width button reusing the `.inp` border, radius, padding, and focus ring. The button no longer carries class `inp` (centering wants intrinsic width, `.inp` forces `width:100%`); keep `serialize()`'s `input.inp, select.inp` selector as-is
+- [x] 2.1 Add a "Copy analysis link" button, id `copyLink`, in its own centered block placed after `<div class="verdict">` and before `<footer>` — a sibling of the verdict, never a child of it, since `.verdict` is hidden at one offer and a single-offer link must still be shareable
+- [x] 2.1a Below the button, centered, add the hint stating the link embeds the entered figures (loan amount, home value, rates) — visible without hover, since the hosted page never shows the README
+- [x] 2.1b Add the block's CSS: centered text, intrinsic-width button reusing the `.inp` border, radius, padding, and focus ring. The button no longer carries class `inp` (centering wants intrinsic width, `.inp` forces `width:100%`); keep `serialize()`'s `input.inp, select.inp` selector as-is
 - [x] 2.2 On click: set `location.hash = serialize()` first, then `navigator.clipboard.writeText(location.href)`
-- [ ] 2.3 On resolve, swap the button label to a confirmation and restore it after ~2s; on reject, swap to a short label pointing at the address bar ("In the address bar", not a sentence)
-- [ ] 2.3a Read the original label once from `textContent` when the handler is bound and restore that, so the label is not hardcoded a second time in the `setTimeout` and cannot drift from the markup
-- [ ] 2.3b Give the button a `min-width` sized to the longest swapped label, so an intrinsic-width centered button does not jump when the label changes
+- [x] 2.3 On resolve, swap the button label to a confirmation and restore it after ~2s; on reject, swap to a short label pointing at the address bar ("In the address bar", not a sentence)
+- [x] 2.3a Read the original label once from `textContent` when the handler is bound and restore that, so the label is not hardcoded a second time in the `setTimeout` and cannot drift from the markup
+- [x] 2.3b Give the button a `min-width` sized to the longest swapped label, so an intrinsic-width centered button does not jump when the label changes
 - [x] 2.4 Confirm the click handler does not collide with the delegated `input` listener that routes `offerCount` to `renderOffers` and everything else to `compute`
 
 ## 3. Self-check
@@ -34,8 +34,8 @@
 - [x] 5.2 Manual: 4 offers with distinct values, copy link, open in a fresh tab, confirm inputs, readouts, and verdict match
 - [x] 5.3 Manual: open a link built at above-80% LTV and one at or below, confirm PMI fields lock or unlock as they do on typed input
 - [x] 5.4 Confirm no-hash load still shows one offer at current defaults
-- [ ] 5.5 Confirm the disclosure hint renders under the copy button at desktop and 640px-and-below widths, unhovered
+- [x] 5.5 Confirm the disclosure hint renders under the copy button at desktop and 640px-and-below widths, unhovered
 - [x] 5.6 Confirm the footer link is below the fold on desktop, tab-focusable, and works from `file://`
 - [x] 5.7 Add a "Share a comparison" line to README (secondary; page hint is the one users see)
-- [ ] 5.8 Confirm the copy control is visible at one offer, when the verdict bar is hidden, and stays centered at 1 through 4 offers and at 640px and below
-- [ ] 5.9 Click the control and confirm the button box does not resize through the confirmation label and back, and that the restored label matches the markup
+- [x] 5.8 Confirm the copy control is visible at one offer, when the verdict bar is hidden, and stays centered at 1 through 4 offers and at 640px and below
+- [x] 5.9 Click the control and confirm the button box does not resize through the confirmation label and back, and that the restored label matches the markup
