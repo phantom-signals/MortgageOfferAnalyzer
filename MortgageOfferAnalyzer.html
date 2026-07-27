@@ -386,18 +386,23 @@
     });
   }
 
-  const money = x => "$" + (Math.round(x)).toLocaleString("en-US");
+  const money = x => "$" + (Math.round(x) || 0).toLocaleString("en-US");   // || 0 so float noise never prints "-$0"
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
   const pct = x => (x*100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:3}) + "%";
+
+  // (1+i)^k - 1, computed so tiny i survives: pow(1+i,k)-1 loses every significant
+  // digit to cancellation once i is small, which drove payments negative or infinite.
+  const powm1 = (i,k) => Math.expm1(k*Math.log1p(i));
 
   function calc(P, ratePct, termYears, m, fees, pmiRatePct, homeValue, thresh, basis){
     const i = (ratePct/100)/m;              // periodic rate
     const n = Math.round(termYears*m);      // total payments
     if(!(P>0) || !(termYears>0) || !(m>0) || !Number.isFinite(ratePct) || ratePct<0) return null;
-    const M = i===0 ? P/n : P*i*Math.pow(1+i,n)/(Math.pow(1+i,n)-1);
+    const growth = powm1(i,n);              // (1+i)^n - 1
+    const M = i===0 ? P/n : P*i*(1+growth)/growth;
     const totalPaid = M*n;
     const totalInterest = totalPaid - P;
-    const ear = Math.pow(1+i,m)-1;
+    const ear = powm1(i,m);
 
     // --- PMI schedule (Homeowners Protection Act rules) ---
     // Premium charged each period while the SCHEDULED balance exceeds
@@ -435,8 +440,9 @@
     const {i,n,m,M,P,fees,cumPMI} = res;
     let k = Math.round(hYears*m);
     if(k>n) k=n;
+    const growth = powm1(i,k);            // (1+i)^k - 1
     const bal = i===0 ? Math.max(P - M*k,0)
-                      : P*Math.pow(1+i,k) - M*(Math.pow(1+i,k)-1)/i;
+                      : P*(1+growth) - M*growth/i;
     const paid = M*k;
     const interestPaid = paid - (P - bal);
     const pmiPaid = cumPMI[k];
@@ -566,6 +572,16 @@
     ok(near(r.totalPMI, 17144.369, 0.01), "total PMI " + r.totalPMI);
     ok(r.pmiEndPeriod === 99, "PMI end period " + r.pmiEndPeriod);
     ok(near(r.totalCost, 906777.137, 0.01), "total cost " + r.totalCost);
+
+    // zero and near-zero rates: payment is principal/n, interest never goes negative
+    for(const rate of [0, 1e-14, 1e-10, 1e-6, 0.001]){
+      const z = calc(400000, rate, 30, 12, 0, 0, 0, 0.78, "declining");
+      ok(near(z.M, 1111.1111, 0.2), "rate " + rate + " payment " + z.M);
+      ok(z.totalInterest > -0.01 && z.totalInterest < 100, "rate " + rate + " interest " + z.totalInterest);
+      const h = horizon(z, 5);
+      ok(near(h.bal, 333333.33, 10), "rate " + rate + " balance " + h.bal);
+      ok(h.interestPaid > -0.01, "rate " + rate + " interest paid " + h.interestPaid);
+    }
 
     // clone rewrite reaches every id
     renderOffers(4);
