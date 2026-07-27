@@ -52,6 +52,12 @@ Changing the offer count SHALL NOT discard input values in the cards that remain
 - **THEN** its rate, term, payments per year, upfront fees, and PMI rate are populated with the tool's default values
 - **AND** its readout computes immediately without further input
 
+#### Scenario: New card added while PMI is locked
+- **WHEN** a new offer card is added and the shared inputs give an initial LTV at or below 80%
+- **THEN** the new card's rate, term, payments per year, and upfront fees are populated with the tool's default values
+- **AND** its PMI rate reads 0 and is disabled, matching every other card
+- **AND** raising the LTV above 80% restores the card's default PMI rate
+
 #### Scenario: Lowering the count drops trailing cards
 - **WHEN** the offer count is 3 and the user lowers it to 2
 - **THEN** Offer C is removed

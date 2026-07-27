@@ -82,6 +82,8 @@
     padding:9px 11px;width:100%;transition:border-color .15s,box-shadow .15s;
   }
   .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(31,81,98,.15)}
+  /* opacity:1 overrides the WebKit/Blink default wash-out, which is illegible on the dark card */
+  .inp:disabled{background:var(--line);color:var(--slate);cursor:not-allowed;opacity:1}
 
   /* offers grid — column count is set from script to match the offer count */
   .offers{display:grid;grid-template-columns:1fr;gap:18px}
@@ -137,6 +139,11 @@
   footer a{color:var(--a);text-decoration:none;border-bottom:1px solid transparent}
   footer a:hover{border-bottom-color:var(--a)}
   .refs{font-size:12px;color:var(--slate);line-height:1.8}
+
+  /* glossary — single source for both the printed definitions and the hover text */
+  .glossary{margin:0;font-size:12px;color:var(--slate);line-height:1.6}
+  .glossary dt{font-weight:650;color:var(--ink);margin-top:10px}
+  .glossary dd{margin:2px 0 0 14px}
 
   @media (max-width:640px){
     body{padding:14px}
@@ -246,7 +253,99 @@
       Fannie Mae &mdash; <a href="https://yourhome.fanniemae.com/calculators-tools/mortgage-calculator" target="_blank" rel="noopener">yourhome.fanniemae.com/calculators-tools/mortgage-calculator</a><br>
       SmartAsset (adds taxes/insurance) &mdash; <a href="https://smartasset.com/mortgage/mortgage-calculator" target="_blank" rel="noopener">smartasset.com/mortgage/mortgage-calculator</a>
     </p>
-    <p>General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
+    <p class="section-label">Definitions</p>
+    <!-- Definitions live here only. The script derives every hover tooltip from this list, so
+         editing a <dd> changes the tooltip too. data-match holds the "|"-separated snippets that
+         identify the term inside a rendered label; entries are ordered SPECIFIC BEFORE GENERAL
+         (first match wins), so "Initial LTV" must precede "LTV" and "Total cost" must precede
+         "Term". Entries with no data-match are glossary-only — they appear in the prose above. -->
+    <dl class="glossary" id="glossary">
+      <dt data-match="offers">Offer</dt>
+      <dd>One lender&rsquo;s quoted loan terms &mdash; rate, term, fees, and mortgage insurance &mdash; for the same loan amount, so competing quotes can be compared side by side.</dd>
+
+      <dt data-match="loan amount|principal">Principal (loan amount)</dt>
+      <dd>The sum you borrow, before any interest; each payment splits between interest owed and principal repaid, and the unpaid principal is your balance.</dd>
+
+      <dt data-match="holding period">Holding period</dt>
+      <dd>How long you expect to keep the loan before selling or refinancing; costs are truncated there instead of running to full term.</dd>
+
+      <dt data-match="home value at purchase|original value">Home value at purchase (original value)</dt>
+      <dd>The lower of the sale price and the appraised value at closing; mortgage insurance rules measure your loan against this figure, not against later market value.</dd>
+
+      <dt data-match="pmi removal rule">PMI removal rule</dt>
+      <dd>Which of the two Homeowners Protection Act exit points this model applies: cancellation you request at 80% LTV, or automatic termination the servicer must perform at 78%.</dd>
+
+      <dt data-match="pmi premium basis">PMI premium basis</dt>
+      <dd>Whether the monthly premium is recalculated on the declining balance, so it shrinks as you pay down, or fixed on the original loan amount.</dd>
+
+      <dt data-match="annual interest rate">Annual interest rate</dt>
+      <dd>The nominal yearly rate quoted on the loan, divided by the number of payments per year to get the rate charged each period.</dd>
+
+      <dt data-match="payments per year">Payments per year</dt>
+      <dd>How many payments the schedule makes annually &mdash; 12 for monthly, 26 for biweekly &mdash; which sets both the periodic rate and the total number of payments.</dd>
+
+      <dt data-match="upfront fees|points">Upfront fees and points</dt>
+      <dd>Cash paid at closing for origination and other charges, plus points paid to buy the rate down; one point is 1% of the loan amount.</dd>
+
+      <dt data-match="pmi annual rate">PMI annual rate</dt>
+      <dd>The yearly mortgage insurance premium as a percentage of the balance it is charged on; divide by payments per year for the amount added to each payment.</dd>
+
+      <dt data-match="payment, p&amp;i|payments made">Payment, P&amp;I (principal and interest)</dt>
+      <dd>The scheduled payment covering interest owed plus principal repaid; it excludes mortgage insurance, property taxes, homeowners insurance, and escrow.</dd>
+
+      <dt data-match="effective annual rate">EAR (effective annual rate)</dt>
+      <dd>What the nominal rate actually costs over a year once compounding within the year is counted, so loans with different payment frequencies compare fairly.</dd>
+
+      <dt data-match="initial ltv">Initial LTV</dt>
+      <dd>The loan-to-value ratio at closing: loan amount divided by home value at purchase; above 80% the lender requires mortgage insurance.</dd>
+
+      <dt data-match="ltv|loan-to-value">LTV (loan-to-value)</dt>
+      <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and is the trigger for removing mortgage insurance.</dd>
+
+      <dt data-match="total interest">Total interest</dt>
+      <dd>Every dollar of interest paid across the full amortization schedule: all payments made minus the principal borrowed.</dd>
+
+      <dt data-match="interest paid">Interest paid</dt>
+      <dd>Interest paid through the holding period only &mdash; payments made so far minus the principal actually retired in that span.</dd>
+
+      <dt data-match="pmi ends">PMI ends</dt>
+      <dd>The payment number, and its year, at which the scheduled balance first drops to the removal threshold, or the amortization midpoint if that comes first.</dd>
+
+      <dt data-match="total pmi">Total PMI</dt>
+      <dd>All mortgage insurance premiums charged from the first payment until PMI ends.</dd>
+
+      <dt data-match="total cost">Total cost</dt>
+      <dd>Everything the loan costs to full term: all payments made, plus upfront fees, plus total mortgage insurance.</dd>
+
+      <dt data-match="remaining balance">Remaining balance</dt>
+      <dd>Principal still owed at the end of the holding period, which you must pay off when you sell or refinance.</dd>
+
+      <dt data-match="cost to walk away">Cost to walk away</dt>
+      <dd>What the loan costs if you leave at the end of the holding period: payments made, plus mortgage insurance paid, plus upfront fees, plus the remaining balance.</dd>
+
+      <dt data-match="term">Term</dt>
+      <dd>The number of years the amortization schedule runs, which fixes the payment size; 30 years is standard, and shorter terms cost more each month but less overall.</dd>
+
+      <dt data-match="pmi">PMI (private mortgage insurance)</dt>
+      <dd>Insurance the lender requires while the loan is large relative to the home&rsquo;s value; it protects the lender, not you, and is charged on top of principal and interest.</dd>
+
+      <dt>HPA (Homeowners Protection Act)</dt>
+      <dd>The federal law setting PMI exit rules: automatic termination at 78% LTV of original value, a cancellation request you may make at 80%, and final termination at the amortization midpoint regardless of balance.</dd>
+
+      <dt>Amortization midpoint</dt>
+      <dd>Half the scheduled payments in; the HPA requires PMI to end here even if the balance has not reached the LTV threshold.</dd>
+
+      <dt>Amortization</dt>
+      <dd>The fixed schedule that retires the loan through equal payments, with interest taking most of each early payment and principal most of each late one.</dd>
+
+      <dt>Escrow</dt>
+      <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; not modeled here.</dd>
+
+      <dt>MIP (mortgage insurance premium)</dt>
+      <dd>The FHA equivalent of PMI, which follows different rules &mdash; often for the life of the loan &mdash; and is not modeled here.</dd>
+    </dl>
+
+    <p style="margin-top:16px">General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
   </footer>
 </div>
 
@@ -262,6 +361,31 @@
   const onEdit = e => e.target.id === "offerCount" ? renderOffers(+e.target.value) : compute();
   document.addEventListener("input", onEdit);
   document.addEventListener("change", onEdit);
+
+  const LOCK_NOTE = "PMI does not apply when the loan starts at or below 80% LTV, so the rate is fixed at 0.";
+
+  // Definitions are written once, in the footer glossary; tooltips are read back out of it so
+  // the two cannot drift. Ordered specific before general in the markup — first match wins.
+  const DEFS = [...document.querySelectorAll("#glossary dt")]
+    .filter(dt => dt.dataset.match)
+    .map(dt => ({tokens: dt.dataset.match.toLowerCase().split("|"),
+                 text: dt.nextElementSibling.textContent.trim()}));
+
+  const defFor = s => {
+    s = s.toLowerCase();
+    const d = DEFS.find(d => d.tokens.some(t => s.includes(t)));
+    return d ? d.text : "";
+  };
+  // Hover text via the native title attribute, the same mechanism the shared selects already
+  // use. Elements that carry hand-written title text are left alone.
+  // ponytail: naive substring scan, ~25 entries x ~25 elements; index the tokens if it ever grows.
+  function annotate(root){
+    root.querySelectorAll(".field label, .row .k").forEach(el => {
+      if(el.title) return;
+      const t = defFor(el.textContent);
+      if(t) el.title = t;
+    });
+  }
 
   const money = x => "$" + (Math.round(x)).toLocaleString("en-US");
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -371,6 +495,7 @@
     while(offers.children.length > n) offers.lastElementChild.remove();
     offers.style.gridTemplateColumns = `repeat(${n},1fr)`;
     $("verdict").hidden = n === 1;
+    annotate(document);          // labels on any card just cloned in
     compute();
   }
 
@@ -384,11 +509,27 @@
     const thresh = parseFloat($("pmiThresh").value);
     const premiumBasis = $("pmiBasis").value;
 
+    // Same test calc() uses to decide PMI is owed. Mirrored into the UI so the input cannot
+    // hold a rate the math discards: at or below 80% LTV the field reads 0 and is locked.
+    const pmiRequired = hv > 0 && P > 0 && (P/hv) > 0.80 + 1e-12;
+
     const costs = [];   // one entry per offer that computed; invalid offers are skipped
     for(let i=0; i<offers.children.length; i++){
-      const res = calc(P, parseFloat($("rate"+i).value), parseFloat($("term"+i).value), parseFloat($("freq"+i).value), parseFloat($("fees"+i).value)||0, parseFloat($("pmi"+i).value), hv, thresh, premiumBasis);
+      const pmiEl = $("pmi"+i);                 // locked before its value is read, so the
+      if(!pmiRequired && !pmiEl.disabled){      // readout below can never disagree with it
+        pmiEl.dataset.prev = pmiEl.value;       // stash survives the lock, restored on unlock
+        pmiEl.value = "0";
+        pmiEl.disabled = true;
+        pmiEl.title = LOCK_NOTE;
+      } else if(pmiRequired && pmiEl.disabled){
+        pmiEl.value = pmiEl.dataset.prev ?? pmiEl.value;
+        pmiEl.disabled = false;
+        pmiEl.removeAttribute("title");
+      }
+      const res = calc(P, parseFloat($("rate"+i).value), parseFloat($("term"+i).value), parseFloat($("freq"+i).value), parseFloat($("fees"+i).value)||0, parseFloat(pmiEl.value), hv, thresh, premiumBasis);
       const h = (res && useHorizon) ? horizon(res, hYears) : null;
       $("out"+i).innerHTML = render(res, h);
+      annotate($("out"+i));
       if(res) costs.push({i, cost: useHorizon ? h.costToClear : res.totalCost});
     }
     verdict(costs, useHorizon, hYears);
@@ -450,6 +591,48 @@
     renderOffers(1);
     ok($("verdict").hidden === true, "verdict shown at count 1");
 
+    // PMI input lock mirrors calc()'s 80% LTV test
+    const setShared = (amt, homeVal) => { $("amount").value = amt; $("homeValue").value = homeVal; compute(); };
+    setShared("400000","450000");                          // LTV 88.9%, PMI owed
+    ok($("pmi0").disabled === false, "pmi0 locked above 80% LTV");
+    $("pmi0").value = "0.72";
+    setShared("360000","450000");                          // LTV exactly 80%
+    ok($("pmi0").disabled === true, "pmi0 editable at exactly 80% LTV");
+    ok($("pmi0").value === "0", "pmi0 not zeroed by lock: " + $("pmi0").value);
+    setShared("300000","450000");                          // LTV 66.7%
+    ok($("pmi0").disabled === true, "pmi0 unlocked below 80% LTV");
+    setShared("","450000");                                // loan amount not yet valid
+    ok($("pmi0").disabled === true, "pmi0 unlocked with blank loan amount");
+    setShared("400000","");                                // home value missing
+    ok($("pmi0").disabled === true, "pmi0 unlocked with blank home value");
+    setShared("400000","450000");                          // back above 80%
+    ok($("pmi0").disabled === false, "pmi0 still locked after LTV rose");
+    ok($("pmi0").value === "0.72", "pmi0 value not restored: " + $("pmi0").value);
+
+    // each card stashes its own value, and a card cloned while locked restores its default
+    renderOffers(3);
+    $("pmi0").value="0.55"; $("pmi1").value="0.72"; $("pmi2").value="0.40";
+    setShared("300000","450000");
+    ok([0,1,2].every(i => $("pmi"+i).disabled && $("pmi"+i).value === "0"), "not every PMI input locked");
+    renderOffers(4);                                       // card 3 clones at its 0.55 default, then locks
+    ok($("pmi3").disabled === true && $("pmi3").value === "0", "cloned card not locked");
+    setShared("400000","450000");
+    ok([0,1,2].map(i => $("pmi"+i).value).join(",") === "0.55,0.72,0.40",
+       "per-card stash lost: " + [0,1,2].map(i => $("pmi"+i).value).join(","));
+    ok($("pmi3").value === "0.55", "cloned card default not restored: " + $("pmi3").value);
+
+    // hover definitions reach cloned labels and freshly rendered readout rows
+    ok(document.querySelector('label[for="pmi1"]').title.length > 0, "no tooltip on cloned PMI label");
+    $("horizon").value = "5"; compute();                   // renders the holding-period rows too
+    const ltvRow = [...$("out0").querySelectorAll(".row .k")].find(k => k.textContent === "Initial LTV");
+    ok(ltvRow && /loan-to-value/i.test(ltvRow.title), "Initial LTV row tooltip: " + (ltvRow && ltvRow.title));
+
+    // every rendered label and readout row resolves to a definition
+    const undef = [...document.querySelectorAll(".field label, .row .k")]
+      .filter(el => el.textContent.trim() && !el.title);
+    ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
+
+    $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";
     offers.innerHTML = card0HTML;                 // undo the edits demo made
     renderOffers(+$("offerCount").value);
     console.log("selftest passed");
