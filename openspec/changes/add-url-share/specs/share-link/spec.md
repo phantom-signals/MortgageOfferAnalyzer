@@ -70,7 +70,7 @@ The `#selftest` hash SHALL continue to run the self-check exactly as it does tod
 - **AND** the page title is unchanged
 
 ### Requirement: Copy-link control publishes the current state
-The tool SHALL provide a control that writes the current state into `location.hash` and copies the resulting full URL to the clipboard, reporting the outcome to the user. When the clipboard write is unavailable or rejected, the hash SHALL still be set so the link remains recoverable from the address bar. The page SHALL state next to that control that the link embeds the entered figures, since the tool is used as a hosted page where no repository documentation is visible.
+The tool SHALL provide a control that writes the current state into `location.hash` and copies the resulting full URL to the clipboard, reporting the outcome to the user. When the clipboard write is unavailable or rejected, the hash SHALL still be set so the link remains recoverable from the address bar. The page SHALL state next to that control that the link embeds the entered figures, since the tool is used as a hosted page where no repository documentation is visible. The control SHALL be reachable at every offer count the tool supports, including counts at which the comparison verdict is not displayed.
 
 #### Scenario: Copy succeeds
 - **WHEN** the user activates the copy-link control
@@ -88,6 +88,15 @@ The tool SHALL provide a control that writes the current state into `location.ha
 - **WHEN** the copy-link control is displayed
 - **THEN** adjacent text in the page states that the link embeds the entered figures
 - **AND** that text is visible without hovering, opening a dialog, or reading any file outside the page
+
+#### Scenario: Control available with a single offer
+- **WHEN** one offer is displayed and the comparison verdict is therefore hidden
+- **THEN** the copy-link control and its disclosure text are still displayed
+- **AND** activating it produces a link that restores that single offer
+
+#### Scenario: Control available at every offer count
+- **WHEN** the offer count is changed to any supported value
+- **THEN** the copy-link control remains displayed and in the same position relative to the offers
 
 #### Scenario: State changes after copying
 - **WHEN** the user edits a field after copying a link

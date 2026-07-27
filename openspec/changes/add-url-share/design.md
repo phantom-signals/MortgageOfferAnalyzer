@@ -44,7 +44,21 @@ Existing check `location.hash === "#selftest"` stays byte-identical. Restore tri
 Writing the hash on every `input` event churns the address bar and pollutes history while the user types. Button click sets `location.hash` and copies `location.href`. Cost: a link is stale until clicked again — acceptable, the button is the share gesture.
 
 **Disclosure lives in the page, not the README.**
-Deployment is a static Cloudflare page; the repo README is not part of the served experience, so a privacy note there reaches nobody who actually clicks share. The copy-link control carries a `<span class="hint">` reading that the link embeds the entered figures — same hint element every field label already uses, so no new styling. Rejected: a confirm dialog before copying (one gesture becomes two for a non-secret), and a one-time dismissible banner (needs persistence the file has no storage for).
+Deployment is a static Cloudflare page; the repo README is not part of the served experience, so a privacy note there reaches nobody who actually clicks share. The copy-link control carries hint text reading that the link embeds the entered figures, at the footer's small muted scale and visible without hover. Rejected: a confirm dialog before copying (one gesture becomes two for a non-secret), and a one-time dismissible banner (needs persistence the file has no storage for).
+
+**Copy control sits after the verdict, in its own centered block.**
+Sharing is the last gesture, after entering offers and reading which one wins, so the control belongs at the end of that sequence rather than among the shared inputs — a button in a grid of data-entry fields reads as another field. It is a sibling of `<div class="verdict">`, never a child: `renderOffers()` sets `$("verdict").hidden = n === 1`, and a single-offer comparison is still worth bookmarking or sending.
+
+Cost: a small CSS block, roughly five lines. The button drops class `inp`, because centering wants intrinsic width and `.inp` forces `width:100%`; it re-declares the border, radius, padding, and focus ring instead. `serialize()` keeps its `input.inp, select.inp` selector — the button no longer needs excluding, but the selector still says exactly what is serialized.
+
+Cost accepted: at 640px and below the offers stack one per column, so with four offers the control sits further down than it did at the top of the page. Nobody shares before entering, so the scroll is on the path already.
+
+Rejected: inside the verdict bar next to the amount — free styling, but it disappears at one offer. A sticky bottom bar — the page has no fixed chrome today and it would cover content on small screens. Footer, above the method note — reads as legal boilerplate.
+
+**Label reads "Copy analysis link".**
+"Copy link" does not say what the link points at, and a hosted tool's bare "copy link" reads as a link to the tool. "Comparison" is rejected because nothing is compared at one offer, the same case that hides the verdict bar; "results" is rejected because the hash carries what was typed, not what was computed — a restored link recomputes from scratch. "Analysis" holds at every offer count and echoes the page's own noun.
+
+The label is read once from the button's `textContent` when the handler binds, so the markup is the only place it is written. Hardcoding it a second time in the restore timer means a renamed button silently reverts to its old name two seconds after first use.
 
 **Clipboard: `navigator.clipboard.writeText(location.href)` with a fallback.**
 `file://` origins are not a secure context in every browser, and the promise rejects. On rejection the button label reports that the link is in the address bar — the hash is set before the copy is attempted, so the link is always recoverable by hand. No `document.execCommand("copy")` shim, no hidden textarea.
