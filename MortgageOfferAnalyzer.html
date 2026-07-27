@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Nothing is fetched: no scripts, styles, fonts, or images from anywhere, and no network
+     calls of any kind. The CSS and script are inline, hence the two 'unsafe-inline' grants. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <title>Mortgage Offer Analyzer</title>
