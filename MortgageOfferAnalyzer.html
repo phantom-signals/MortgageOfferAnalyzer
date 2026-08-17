@@ -125,6 +125,13 @@
   .verdict .amount{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
   .verdict .amount small{font-size:12px;opacity:.7;font-weight:500;display:block;text-align:right}
 
+  /* disclaimer beside the results — --ink, not --slate: an inconspicuous disclaimer is unenforceable */
+  .notice{
+    margin:10px 0 0;padding:11px 14px;border:1px solid var(--line-strong);border-left:3px solid var(--d);
+    border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;line-height:1.5;
+  }
+  .notice a{color:var(--a)}
+
   /* share control — .inp carries the look; min-width holds the box while the label swaps */
   .share{text-align:center;margin:18px 0 6px}
   .share .inp{width:auto;min-width:14em;background:var(--card);cursor:pointer}
@@ -244,6 +251,14 @@
     <div class="amount" id="verdictAmount">&mdash;</div>
   </div>
 
+  <!-- Outside the verdict: the verdict hides at one offer, the disclaimer always shows. -->
+  <p class="notice">
+    <strong>Estimates only &mdash; not financial advice.</strong>
+    A model, not a quote; figures may not match any lender&rsquo;s.
+    Verify against your official Loan Estimate.
+    No warranty &mdash; see <a href="#terms">Terms of Use</a>.
+  </p>
+
   <!-- Sibling of the verdict, not a child: the verdict is hidden at one offer, which is still worth sharing. -->
   <div class="share">
     <button class="inp" id="copyLink" type="button">Copy analysis link</button>
@@ -352,6 +367,16 @@
     </dl>
 
     <p style="margin-top:16px">General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
+
+    <p class="section-label">Privacy</p>
+    <p>Nothing you enter leaves your device. This page makes no network requests, sets no cookies, stores nothing in your browser, and runs no analytics. No account, no email, no server. <strong>Copy analysis link</strong> writes your figures into the URL in plain text and copies it to your clipboard. That link is the only copy; anyone you send it to can read the numbers in it.</p>
+
+    <p class="section-label" id="terms">Terms of Use</p>
+    <p><strong>No advice, no relationship.</strong> This page is an educational calculator. It is not financial, lending, tax, legal, or investment advice, and not an offer, quote, commitment, or solicitation to lend. Use creates no advisory, fiduciary, broker, or client relationship. It is not operated by, affiliated with, endorsed by, or compensated by any lender, broker, or mortgage originator, and makes no referrals.</p>
+    <p><strong>No warranty.</strong> THE PAGE AND ITS CALCULATIONS ARE PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo;, WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY WARRANTY OF ACCURACY, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. Results are estimates from figures you supply. They may be wrong, incomplete, or out of date, and exclude property taxes, homeowners insurance, escrow, adjustable rates, and FHA mortgage insurance. Your lender&rsquo;s figures and your official Loan Estimate govern, not this page.</p>
+    <p><strong>Limitation of liability.</strong> TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE AUTHOR IS NOT LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOST PROFITS, LOST SAVINGS, OR LOST OPPORTUNITY, ARISING FROM OR RELATED TO YOUR USE OF OR RELIANCE ON THIS PAGE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE AUTHOR&rsquo;S TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED ONE HUNDRED U.S. DOLLARS (USD $100). You are solely responsible for your financial decisions. Any exclusion above that law forbids does not apply.</p>
+    <p><strong>Governing law.</strong> These terms are governed by the laws of the Commonwealth of Massachusetts, USA, without regard to its conflict-of-laws rules. Any dispute shall be brought exclusively in the state or federal courts located in Massachusetts, and you consent to that venue. Nothing here waives a right that cannot be waived by agreement under Massachusetts law, including under Mass. Gen. Laws ch. 93A.</p>
+    <p><strong>Changes and license.</strong> These terms may change without notice; the version on this page when you use it applies. The source is separately licensed under the MIT License, whose warranty disclaimer applies to any copy you obtain. If you do not accept these terms, do not use this page.</p>
     <p>Questions, comments, feature requests, or bug reports &mdash; <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">github.com/phantom-signals/MortgageOfferAnalyzer</a></p>
   </footer>
 
