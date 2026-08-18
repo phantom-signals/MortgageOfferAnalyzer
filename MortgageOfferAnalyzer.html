@@ -49,6 +49,8 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0}
+  /* Stops WebKit font boosting: rotating to landscape otherwise inflates long text blocks */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{
     background:var(--paper);
     color:var(--ink);
