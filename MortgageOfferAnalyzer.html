@@ -3,11 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <!-- Nothing is fetched: no scripts, styles, fonts, or images from anywhere, and no network
-     calls of any kind. The CSS and script are inline, hence the two 'unsafe-inline' grants. -->
+     calls of any kind. The CSS and script are inline, hence the two 'unsafe-inline' grants;
+     the favicon is an inline data: URI, hence img-src data:. -->
 <meta http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'">
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
+<!-- House-with-bar-chart mark, inline SVG so nothing is fetched. Follows the tab's
+     light/dark scheme via the media query inside the SVG. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2032%2032%22%3E%3Cstyle%3E%20.h{fill:none;stroke:%231f5162;stroke-width:2.6;stroke-linejoin:round}%20.b{fill:%231f5162}%20@media%20(prefers-color-scheme:dark){.h{stroke:%236db3c9}.b{fill:%236db3c9}}%20%3C/style%3E%3Cpath%20class=%22h%22%20d=%22M16%203.4%2029%2013.9V28.6H3V13.9Z%22/%3E%3Cg%20class=%22b%22%3E%3Crect%20x=%229%22%20y=%2220%22%20width=%224%22%20height=%225.6%22%20rx=%221%22/%3E%3Crect%20x=%2214%22%20y=%2217%22%20width=%224%22%20height=%228.6%22%20rx=%221%22/%3E%3Crect%20x=%2219%22%20y=%2214%22%20width=%224%22%20height=%2211.6%22%20rx=%221%22/%3E%3C/g%3E%3C/svg%3E">
 <title>Mortgage Offer Analyzer</title>
 <style>
   :root{
