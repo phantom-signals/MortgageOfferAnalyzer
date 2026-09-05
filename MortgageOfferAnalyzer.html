@@ -100,9 +100,10 @@
   /* opacity:1 overrides the WebKit/Blink default wash-out, which is illegible on the dark card */
   .inp:disabled{background:var(--line);color:var(--slate);cursor:not-allowed;opacity:1}
 
-  /* offers grid — column count is set from script to match the offer count */
-  .offers{display:grid;grid-template-columns:1fr;gap:18px}
+  /* offers grid — tracks wrap on their own; min() keeps the floor from overflowing a narrow phone */
+  .offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:18px}
   .offer{
+    min-width:0;
     background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:18px 20px 20px;box-shadow:var(--shadow);border-top:3px solid var(--accent);
   }
@@ -240,7 +241,6 @@
   @media (max-width:640px){
     body{padding:14px}
     .shared{grid-template-columns:1fr;padding:14px 16px}
-    .offers{grid-template-columns:1fr!important}  /* beats the inline column count set by script */
     .inp{font-size:16px;padding:12px 12px}  /* 16px stops mobile browsers auto-zooming on focus */
     .row{font-size:14px}
     .verdict{padding:14px 16px}
@@ -747,7 +747,6 @@
     $("offerCount").value = n;   // the menu mirrors the count, whatever set it
     while(offers.children.length < n) offers.insertAdjacentHTML("beforeend", cardHTML(offers.children.length));
     while(offers.children.length > n) offers.lastElementChild.remove();
-    offers.style.gridTemplateColumns = `repeat(${n},1fr)`;
     $("verdict").hidden = n === 1;
     annotate(document);          // labels on any card just cloned in
     compute();
