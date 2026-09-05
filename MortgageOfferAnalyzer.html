@@ -107,6 +107,25 @@
     display:flex;align-items:center;gap:8px;
   }
   .offer h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .offer h2 .steppers{margin-left:auto;display:flex;gap:6px}
+  .offer h2 .step{
+    width:24px;height:24px;padding:0;cursor:pointer;
+    background:var(--paper);border:1px solid var(--line-strong);border-radius:6px;
+    display:grid;place-items:center;
+    transition:border-color .15s;
+  }
+  .offer h2 .step::before,
+  .offer h2 .step-plus::after{
+    content:"";grid-area:1/1;background:var(--accent);border-radius:1px;
+    width:10px;height:2px;
+  }
+  .offer h2 .step-plus::after{width:2px;height:10px}
+  .offer h2 .step:hover{border-color:var(--accent)}
+  .offer h2 .step:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  /* bounds: one offer keeps its card, the fourth ends the row, only the tail grows */
+  .offer:only-child .step-minus{visibility:hidden}
+  .offer:not(:last-child) .step-plus{visibility:hidden}
+  .offer.d .step-plus{visibility:hidden}
   .offer .field{margin-bottom:12px}
   .offer .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
 
@@ -258,7 +277,13 @@
   <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
   <div class="offers">
     <div class="offer a">
-      <h2><span class="dot"></span>Offer A</h2>
+      <h2>
+        <span class="dot"></span><span class="name">Offer A</span>
+        <span class="steppers">
+          <button type="button" class="step step-minus" data-step="-1" aria-label="Remove this offer"></button>
+          <button type="button" class="step step-plus" data-step="1" aria-label="Add an offer"></button>
+        </span>
+      </h2>
       <div class="field">
         <label for="rate0">Annual interest rate (%)</label>
         <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.25" inputmode="decimal">
@@ -439,6 +464,15 @@
   document.addEventListener("input", e =>
     e.target.id === "offerCount" ? renderOffers(+e.target.value) : compute());
 
+  // One listener for every card, cloned ones included.
+  offers.addEventListener("click", e => {
+    const btn = e.target.closest("[data-step]");
+    if(!btn) return;
+    +btn.dataset.step > 0
+      ? renderOffers(offers.children.length + 1)
+      : removeOffer([...offers.children].indexOf(btn.closest(".offer")));
+  });
+
   // PMI is only required when the loan starts above 80% LTV. calc() and the UI lock
   // must agree on this, so both read it from here.
   const pmiOwed = (P,hv) => hv>0 && P>0 && P/hv > 0.80 + 1e-12;
@@ -613,11 +647,27 @@
   // Add/remove only at the tail, so existing cards keep their entered values.
   function renderOffers(n){
     n = Math.min(LETTERS.length, Math.max(1, Math.round(n) || 1));
+    $("offerCount").value = n;   // the menu mirrors the count, whatever set it
     while(offers.children.length < n) offers.insertAdjacentHTML("beforeend", cardHTML(offers.children.length));
     while(offers.children.length > n) offers.lastElementChild.remove();
     offers.style.gridTemplateColumns = `repeat(${n},1fr)`;
     $("verdict").hidden = n === 1;
     annotate(document);          // labels on any card just cloned in
+    compute();
+  }
+
+  // A locked input keeps its real value in the stash, so the stash is what moves.
+  const getVal = el => el.disabled ? (el.dataset.prev ?? el.value) : el.value;
+  const setVal = (el, v) => { el.disabled ? el.dataset.prev = v : el.value = v; };
+  const fieldsOf = card => [...card.querySelectorAll(".inp")];
+
+  // Cards are identical clones, so values move by position.
+  function removeOffer(i){
+    if(offers.children.length < 2) return;
+    const rows = [...offers.children].map(c => fieldsOf(c).map(getVal));
+    rows.splice(i, 1);
+    renderOffers(rows.length);   // drops the tail card, not card i
+    rows.forEach((row, c) => fieldsOf(offers.children[c]).forEach((el, j) => setVal(el, row[j])));
     compute();
   }
 
@@ -780,6 +830,29 @@
     const undef = [...document.querySelectorAll(".field label, .row .k")]
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
+
+    // removing a card shifts later offers down, and the menu follows the buttons
+    renderOffers(3);
+    $("rate0").value = "6.1"; $("rate1").value = "5.9"; $("rate2").value = "6.4"; compute();
+    offers.children[0].querySelector(".step-minus").click();
+    ok(offers.children.length === 2, "minus left " + offers.children.length + " cards");
+    ok($("offerCount").value === "2", "menu out of sync after minus: " + $("offerCount").value);
+    ok($("rate0").value === "5.9" && $("rate1").value === "6.4",
+       "values did not shift down: " + $("rate0").value + "," + $("rate1").value);
+    offers.children[1].querySelector(".step-plus").click();
+    ok(offers.children.length === 3 && $("offerCount").value === "3",
+       "plus left " + offers.children.length + " cards, menu " + $("offerCount").value);
+
+    // a locked PMI field reads "0", so the shift has to move the stash instead
+    $("homeValue").value = "900000"; compute();
+    ok($("pmi0").disabled, "PMI not locked");
+    [0,1,2].forEach(i => $("pmi"+i).dataset.prev = "0.4" + i);
+    offers.children[0].querySelector(".step-minus").click();
+    ok($("pmi0").dataset.prev === "0.41" && $("pmi1").dataset.prev === "0.42",
+       "locked PMI did not shift: " + $("pmi0").dataset.prev + "," + $("pmi1").dataset.prev);
+    ok($("pmi0").value === "0", "locked PMI showing a stashed rate: " + $("pmi0").value);
+    $("homeValue").value = "450000"; compute();
+    ok($("pmi0").value === "0.41", "stash not restored on unlock: " + $("pmi0").value);
 
     // share link survives a full round trip through a string, values and results alike
     const snapshot = () => [...document.querySelectorAll(INPUTS)].map(el => el.id + "=" + el.value).join(",");
