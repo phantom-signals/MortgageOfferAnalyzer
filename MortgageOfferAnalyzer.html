@@ -23,10 +23,16 @@
     --slate:#5d6670;
     --line:#d9dcd6;
     --line-strong:#c2c7bf;
-    --a:#1f5162;        /* Offer A accent */
-    --b:#9a5b23;        /* Offer B accent */
-    --c:#5c3f7a;        /* Offer C accent */
-    --d:#8c2f3f;        /* Offer D accent */
+    /* Offer accents. Also chart marks, so each step has to clear the contrast and
+       colour-vision-deficiency gates against the card, not just look right as chrome. */
+    --a:#0081a2;        /* Offer A accent */
+    --b:#9a5a1f;        /* Offer B accent */
+    --c:#614082;        /* Offer C accent */
+    --d:#931f39;        /* Offer D accent */
+    /* Donut slices for money that is not a borrowing cost; neutral so chroma, not
+       lightness, separates them from the accent ramp. */
+    --seg-principal:#a3abb2;
+    --seg-remaining:#5f676e;
     --good:#2f6f4e;
     --verdict-bg:#161a1d;
     --verdict-fg:#f4f5f2;
@@ -42,10 +48,12 @@
       --slate:#a3acb5;
       --line:#31373d;
       --line-strong:#454d55;
-      --a:#6db3c9;        /* Offer A accent, lightened for contrast on dark */
-      --b:#d9a06b;        /* Offer B accent, lightened for contrast on dark */
-      --c:#b294d1;        /* Offer C accent, lightened for contrast on dark */
-      --d:#e3899a;        /* Offer D accent, lightened for contrast on dark */
+      --a:#33a1bf;        /* Offer A accent, lightened for contrast on dark */
+      --b:#c38240;        /* Offer B accent, lightened for contrast on dark */
+      --c:#a57ecc;        /* Offer C accent, lightened for contrast on dark */
+      --d:#e3607f;        /* Offer D accent, lightened for contrast on dark */
+      --seg-principal:#5b6369;
+      --seg-remaining:#9aa2a9;
       --good:#7fc9a3;
       --verdict-bg:#0c0e10;
       --verdict-fg:#e8eaec;
@@ -87,7 +95,7 @@
     background:var(--paper);border:1px solid var(--line-strong);border-radius:8px;
     padding:9px 11px;width:100%;transition:border-color .15s,box-shadow .15s;
   }
-  .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(31,81,98,.15)}
+  .inp:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px color-mix(in srgb,var(--a) 22%,transparent)}
   /* opacity:1 overrides the WebKit/Blink default wash-out, which is illegible on the dark card */
   .inp:disabled{background:var(--line);color:var(--slate);cursor:not-allowed;opacity:1}
 
@@ -141,6 +149,53 @@
   .row.total .k{color:var(--ink);font-weight:650}
   .row.total .v{font-size:15px}
 
+  /* donut — cost composition for one offer */
+  .donut{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .donut svg{display:block;width:100%;max-width:150px;height:auto;margin:0 auto}
+  .donut .hole-v{
+    font-family:var(--sans);font-size:15px;font-weight:700;fill:var(--ink);text-anchor:middle;
+  }
+  .donut .hole-k{font-family:var(--sans);font-size:8.5px;fill:var(--slate);text-anchor:middle}
+  .legend{margin-top:10px}
+  .legend .k{display:flex;align-items:center;gap:7px}
+  .sw{width:10px;height:10px;border-radius:2px;flex:none}
+
+  /* cost-over-time chart */
+  .chart-wrap{
+    position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px 10px;box-shadow:var(--shadow);
+  }
+  #chart svg{display:block}
+  #chart .grid{stroke:var(--line);stroke-width:1}
+  #chart .axis-t{font-family:var(--sans);font-size:11px;fill:var(--slate)}
+  #chart .axis-t.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  #chart .ser{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  /* halo keeps an in-plot label legible where it crosses a line */
+  #chart .lbl{
+    font-family:var(--sans);font-size:11px;font-weight:650;fill:var(--ink);
+    paint-order:stroke;stroke:var(--card);stroke-width:3px;stroke-linejoin:round;
+  }
+  #chart .mark-ring{stroke:var(--card);stroke-width:2}
+  #chart .hz{stroke:var(--slate);stroke-width:1;stroke-dasharray:3 3}  /* dashed: a threshold, unlike the grid */
+  #chart .be{stroke:var(--slate);stroke-width:1}
+  #chart .xh{stroke:var(--slate);stroke-width:1}
+  #chart .hit{fill:transparent;cursor:crosshair}
+  #chart .hit:focus-visible{outline:2px solid var(--a);outline-offset:-2px}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:2px 0 10px}
+  .chart-legend span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink)}
+  .chart-empty{font-size:13px;color:var(--slate);padding:10px 0}
+  /* enhancement only: every figure it shows is also in the readout rows */
+  .tip{
+    position:absolute;pointer-events:none;opacity:0;transition:opacity .12s;
+    background:var(--verdict-bg);color:var(--verdict-fg);border-radius:8px;
+    padding:8px 10px;font-size:12px;line-height:1.45;white-space:nowrap;z-index:2;
+    box-shadow:0 4px 14px rgba(0,0,0,.22);
+  }
+  .tip.on{opacity:1}
+  .tip b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+  .tip .yr{opacity:.65;display:block;margin-bottom:3px}
+  .tip i{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:6px}
+
   /* verdict bar */
   .verdict{
     margin:22px 0 8px;background:var(--verdict-bg);color:var(--verdict-fg);border-radius:12px;
@@ -169,6 +224,8 @@
     font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);
     font-weight:600;margin:26px 0 10px;
   }
+  /* the hint is a sentence, so it opts out of the label's uppercase tracking */
+  .section-label .hint{text-transform:none;letter-spacing:0}
   .horizon-note{font-size:12px;color:var(--slate);margin-top:2px}
 
   footer{margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
@@ -189,6 +246,7 @@
     .inp{font-size:16px;padding:12px 12px}  /* 16px stops mobile browsers auto-zooming on focus */
     .row{font-size:14px}
     .verdict{padding:14px 16px}
+    .chart-wrap{padding:12px 10px 8px}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -306,6 +364,14 @@
       </div>
       <div class="readout" id="out0"></div>
     </div>
+  </div>
+
+  <!-- The verdict reads one point off these curves; where the lowest curve changes, it flips. -->
+  <p class="section-label">Cost over time <span class="hint">&mdash; what each offer costs to walk away at any point, including payoff of the balance still owed</span></p>
+  <div class="chart-wrap">
+    <div class="chart-legend" id="chartLegend"></div>
+    <div id="chart"></div>
+    <div class="tip" id="chartTip"></div>
   </div>
 
   <div class="verdict" id="verdict" hidden>
@@ -542,6 +608,9 @@
   const money = x => "$" + (Math.round(x) || 0).toLocaleString("en-US");   // || 0 so float noise never prints "-$0"
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
   const pct = x => (x*100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:3}) + "%";
+  // Axis ticks and the donut centre; the exact dollar is in the readout rows.
+  const compact = new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:1});
+  const moneyK = x => "$" + compact.format(Math.round(x));
 
   // (1+i)^k - 1, computed so tiny i survives: pow(1+i,k)-1 loses every significant
   // digit to cancellation once i is small, which drove payments negative or infinite.
@@ -602,7 +671,52 @@
             costToClear: paid + pmiPaid + fees + Math.max(bal,0)}; // + payoff of remaining
   }
 
-  function render(res, hData){
+  // Colour is fixed per component, not derived from size or the holding period, so a slice
+  // keeps its swatch across every card. Borrowing costs share the card's accent as a one-hue
+  // ramp; principal and the balance owed are neutral, not a cost of borrowing. The mix steps
+  // are validated as a set — re-step them together.
+  const SEGS = [
+    {k:"Interest paid",     c:"var(--accent)"},
+    {k:"PMI",               c:"color-mix(in srgb,var(--accent) 83%,var(--card))"},
+    {k:"Upfront fees",      c:"color-mix(in srgb,var(--accent) 67%,var(--card))"},
+    {k:"Remaining balance", c:"var(--seg-remaining)"},
+    {k:"Principal",         c:"var(--seg-principal)"},
+  ];
+
+  // Dash offsets rather than arc paths: a full-circle segment stays a circle instead of the
+  // degenerate arc "A" commands collapse to, and a zero segment draws nothing.
+  function donutHTML(res, h, hYears){
+    // Sums to exactly the total the rows above print: totalCost, or costToClear.
+    const amts = h
+      ? [h.interestPaid, h.pmiPaid, res.fees, h.bal, res.P - h.bal]
+      : [res.totalInterest, res.totalPMI, res.fees, 0, res.P];
+    const total = amts.reduce((a,b) => a+b, 0);
+    if(!(total > 0)) return "";
+
+    const R = 46, C = 2*Math.PI*R, GAP = 2;   // gap between fills, not a border on each
+    let at = 0, arcs = "", legend = "", shares = [];
+    amts.forEach((amt, j) => {
+      if(!(amt > 0)) return;
+      const len = amt/total*C, draw = Math.max(0, len - GAP);
+      arcs += `<circle cx="64" cy="64" r="${R}" fill="none" stroke-width="20" stroke="${SEGS[j].c}"`
+            + ` stroke-dasharray="${draw.toFixed(2)} ${(C-draw).toFixed(2)}"`
+            + ` stroke-dashoffset="${(-at).toFixed(2)}"></circle>`;
+      legend += `<div class="row"><span class="k">`
+              + `<span class="sw" style="background:${SEGS[j].c}"></span>${SEGS[j].k}</span>`
+              + `<span class="v">${money(amt)}</span></div>`;
+      shares.push(`${SEGS[j].k} ${Math.round(amt/total*100)}%`);
+      at += len;
+    });
+    const cap = h ? `at ${hYears} yr` : "to term";
+    return `<div class="donut">`
+      + `<svg viewBox="0 0 128 128" role="img" aria-label="Cost composition ${cap}: ${shares.join(", ")}">`
+      + `<g transform="rotate(-90 64 64)">${arcs}</g>`
+      + `<text class="hole-v" x="64" y="62">${moneyK(total)}</text>`
+      + `<text class="hole-k" x="64" y="76">${cap}</text>`
+      + `</svg><div class="legend">${legend}</div></div>`;
+  }
+
+  function render(res, hData, hYears){
     if(!res) return "<div class='row'><span class='k'>Enter valid inputs</span></div>";
     let html = "";
     html += rowHTML("Payment, P&amp;I (per period)", money2(res.M));
@@ -628,7 +742,7 @@
       html += rowHTML("Remaining balance", money(hData.bal));
       html += rowHTML("Cost to walk away (incl. fees + PMI)", money(hData.costToClear), true);
     }
-    return html;
+    return html + donutHTML(res, hData, hYears);
   }
   function rowHTML(k,v,total){
     return `<div class="row${total?' total':''}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
@@ -685,6 +799,7 @@
     const pmiRequired = pmiOwed(P, hv);
 
     const costs = [];   // one entry per offer that computed; invalid offers are skipped
+    const items = [];   // same offers, keeping calc()'s result so the chart can sample it
     for(let i=0; i<offers.children.length; i++){
       const pmiEl = $("pmi"+i);                 // locked before its value is read, so the
       if(!pmiRequired && !pmiEl.disabled){      // readout below can never disagree with it
@@ -699,12 +814,201 @@
       }
       const res = calc(P, parseFloat($("rate"+i).value), parseFloat($("term"+i).value), parseFloat($("freq"+i).value), parseFloat($("fees"+i).value)||0, parseFloat(pmiEl.value), hv, thresh, premiumBasis);
       const h = (res && useHorizon) ? horizon(res, hYears) : null;
-      $("out"+i).innerHTML = render(res, h);
+      $("out"+i).innerHTML = render(res, h, hYears);
       annotate($("out"+i));
-      if(res) costs.push({i, cost: useHorizon ? h.costToClear : res.totalCost});
+      if(res){ costs.push({i, cost: useHorizon ? h.costToClear : res.totalCost}); items.push({i, res}); }
     }
+    drawChart(items, useHorizon, hYears);
     verdict(costs, useHorizon, hYears);
   }
+
+  // ── cost-over-time chart ─────────────────────────────────────────────────────
+  // horizon() is closed form for any period, so the y value at year x is the number the
+  // verdict compares, swept across time.
+  const SAMPLES = 240;
+  const accentOf = i => "var(--" + LETTERS[i].toLowerCase() + ")";
+
+  function niceTicks(lo, hi, want){
+    const span = hi - lo;
+    if(!(span > 0)) return [lo];
+    const raw = span/want, mag = 10 ** Math.floor(Math.log10(raw));
+    const step = [1,2,2.5,5,10].find(s => s*mag >= raw) * mag;
+    const out = [];
+    for(let v = Math.ceil(lo/step)*step; v <= hi + step*1e-6; v += step) out.push(v);
+    return out;
+  }
+
+  // A break-even is where the cheapest offer changes, not where any two lines cross: most
+  // pairwise crossings decide nothing. A leader change is where the verdict flips.
+  function breakEvens(xs, ys){
+    if(ys.length < 2) return [];
+    const lead = k => { let b = 0; for(let j=1;j<ys.length;j++) if(ys[j][k] < ys[b][k]) b = j; return b; };
+    const out = [];
+    let prev = lead(0);
+    for(let k=1;k<xs.length;k++){
+      const cur = lead(k);
+      // the verdict's own tie window, so float noise never reads as a crossing
+      if(cur === prev || ys[cur][k] > ys[prev][k] - 0.5) continue;
+      const d0 = ys[prev][k-1] - ys[cur][k-1], d1 = ys[prev][k] - ys[cur][k];
+      const t = d0 === d1 ? 0 : d0/(d0 - d1);
+      out.push({year: xs[k-1] + t*(xs[k] - xs[k-1]), win: cur});
+      prev = cur;
+    }
+    // Differing fees make the lead swap repeatedly at the start, which is an artifact of the
+    // fee ordering, not an answer to "how long must I stay". Keep only durable leaders.
+    const end = xs[xs.length-1], MIN_REIGN = end*0.02;
+    return out.filter((b,q) => ((out[q+1] ? out[q+1].year : end) - b.year) >= MIN_REIGN);
+  }
+
+  // Geometry of the chart on screen, so the crosshair can read it back.
+  let chart = null;
+
+  function drawChart(items, useHorizon, hYears){
+    const host = $("chart"), leg = $("chartLegend"), tip = $("chartTip");
+    tip.classList.remove("on");
+    chart = null;
+    if(!items.length){
+      leg.innerHTML = "";
+      host.innerHTML = `<p class="chart-empty">Enter valid offer terms to see how cost builds over time.</p>`;
+      return;
+    }
+    // Measured, not scaled: 1 SVG unit = 1 CSS pixel, so label text holds its size at any
+    // width. A fixed viewBox scaled to fit would shrink the text with the chart.
+    const W = Math.max(280, host.clientWidth || 640);
+    const H = W < 480 ? 240 : 300;
+    const L = 56, R = 30, T = 14, B = 34;      // B holds the x-axis band, so it cannot clip
+    const maxYears = Math.max(...items.map(o => o.res.n / o.res.m));
+    const xs = Array.from({length: SAMPLES+1}, (_,k) => k*maxYears/SAMPLES);
+    const ys = items.map(o => xs.map(x => horizon(o.res, x).costToClear));
+
+    const flat = ys.flat();
+    let lo = Math.min(...flat), hi = Math.max(...flat);
+    const pad = (hi - lo) * 0.08 || Math.max(1, hi*0.05);
+    lo -= pad; hi += pad;
+    const X = x => L + (x/maxYears)*(W - L - R);
+    const Y = v => T + (1 - (v - lo)/(hi - lo))*(H - T - B);
+    // keeps a label from running off either end
+    const anchor = px => px < L + 42 ? "start" : px > W - R - 42 ? "end" : "middle";
+
+    let g = "";
+    niceTicks(lo, hi, 4).forEach(v => {
+      g += `<line class="grid" x1="${L}" y1="${Y(v).toFixed(1)}" x2="${W-R}" y2="${Y(v).toFixed(1)}"></line>`
+         + `<text class="axis-t num" x="${L-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${moneyK(v)}</text>`;
+    });
+    g += `<line class="grid" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"></line>`;
+    const xt = [];
+    for(let y=0; y<=maxYears + 1e-9; y+=5) xt.push(y);
+    if(maxYears - xt[xt.length-1] > 1.5) xt.push(maxYears);
+    xt.forEach(y => {
+      g += `<text class="axis-t num" x="${X(y).toFixed(1)}" y="${H-B+17}" text-anchor="${anchor(X(y))}">${+y.toFixed(1)}</text>`;
+    });
+    g += `<text class="axis-t" x="${W-R}" y="${H-B+31}" text-anchor="end">years held</text>`;
+
+    ys.forEach((s, j) => {
+      const d = s.map((v,k) => (k ? "L" : "M") + X(xs[k]).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+      g += `<path class="ser" d="${d}" stroke="${accentOf(items[j].i)}"></path>`;
+    });
+
+    // Direct labels at the line ends: letter in ink, identity colour on the dot beside it.
+    const ends = ys.map((s,j) => ({j, y: Y(s[s.length-1])})).sort((a,b) => a.y - b.y);
+    for(let q=1;q<ends.length;q++) if(ends[q].y - ends[q-1].y < 13) ends[q].y = ends[q-1].y + 13;
+    ends.forEach(e => {
+      const s = ys[e.j];
+      g += `<circle class="mark-ring" cx="${X(maxYears).toFixed(1)}" cy="${Y(s[s.length-1]).toFixed(1)}" r="3.5" fill="${accentOf(items[e.j].i)}"></circle>`
+         + `<text class="lbl" x="${(X(maxYears)+9).toFixed(1)}" y="${(e.y+4).toFixed(1)}">${LETTERS[items[e.j].i]}</text>`;
+    });
+
+    breakEvens(xs, ys).forEach(be => {
+      const bx = X(be.year);
+      g += `<line class="be" x1="${bx.toFixed(1)}" y1="${T+16}" x2="${bx.toFixed(1)}" y2="${H-B}"></line>`
+         + `<text class="lbl" x="${bx.toFixed(1)}" y="${T+10}" text-anchor="${anchor(bx)}">`
+         + `${LETTERS[items[be.win].i]} cheapest from ${be.year.toFixed(1)} yr</text>`;
+    });
+
+    // These dots are the numbers the verdict prints, so the two cannot disagree.
+    if(useHorizon && hYears > 0 && hYears <= maxYears){
+      const hx = X(hYears);
+      g += `<line class="hz" x1="${hx.toFixed(1)}" y1="${T}" x2="${hx.toFixed(1)}" y2="${H-B}"></line>`;
+      const at = items.map((o,j) => ({j, v: horizon(o.res, hYears).costToClear}));
+      at.forEach(p => {
+        g += `<circle class="mark-ring" cx="${hx.toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="4" fill="${accentOf(items[p.j].i)}"></circle>`;
+      });
+      const best = at.reduce((m,p) => p.v < m.v ? p : m, at[0]);
+      g += `<text class="lbl" x="${hx.toFixed(1)}" y="${(Y(best.v)-11).toFixed(1)}" text-anchor="${anchor(hx)}">`
+         + `${LETTERS[items[best.j].i]} ${money(best.v)}</text>`;
+    }
+
+    // Crosshair, moved by pointer or arrow keys; hidden until used.
+    g += `<g class="xhair" style="display:none">`
+       + `<line class="xh" y1="${T}" y2="${H-B}"></line>`
+       + items.map((o) => `<circle class="mark-ring" r="4" fill="${accentOf(o.i)}"></circle>`).join("")
+       + `</g>`
+       + `<rect class="hit" x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" tabindex="0"`
+       + ` role="slider" aria-label="Read cost at a holding period"`
+       + ` aria-valuemin="0" aria-valuemax="${maxYears.toFixed(1)}" aria-valuenow="0"></rect>`;
+
+    leg.innerHTML = items.length < 2 ? "" : items.map(o =>
+      `<span><i class="sw" style="background:${accentOf(o.i)}"></i>Offer ${LETTERS[o.i]}</span>`).join("");
+    host.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
+
+    chart = {items, xs, ys, X, Y, W, L, R, T, B, maxYears, host, tip,
+             hit: host.querySelector(".hit"), grp: host.querySelector(".xhair"), k: -1};
+    chart.hit.addEventListener("pointermove", e => moveCross(pxToIndex(e.clientX)));
+    chart.hit.addEventListener("pointerleave", hideCross);
+    chart.hit.addEventListener("blur", hideCross);
+    chart.hit.addEventListener("keydown", e => {
+      const d = {ArrowLeft:-1, ArrowRight:1, PageDown:-10, PageUp:10}[e.key];
+      if(d === undefined) return;
+      e.preventDefault();
+      moveCross((chart.k < 0 ? SAMPLES/2 : chart.k) + d*(e.shiftKey ? 10 : 1));
+    });
+  }
+
+  const pxToIndex = clientX => {
+    const r = chart.host.getBoundingClientRect();
+    const px = (clientX - r.left) * (chart.W / (r.width || chart.W));
+    return Math.round((px - chart.L)/(chart.W - chart.L - chart.R) * SAMPLES);
+  };
+
+  function hideCross(){
+    if(!chart) return;
+    chart.k = -1;
+    chart.grp.style.display = "none";
+    chart.tip.classList.remove("on");
+  }
+
+  function moveCross(k){
+    if(!chart) return;
+    k = Math.max(0, Math.min(SAMPLES, Math.round(k)));
+    chart.k = k;
+    const {xs, ys, X, Y, items, grp, tip, host} = chart;
+    const cx = X(xs[k]);
+    grp.style.display = "";
+    const rule = grp.querySelector("line");
+    rule.setAttribute("x1", cx); rule.setAttribute("x2", cx);
+    const dots = [...grp.querySelectorAll("circle")];
+    dots.forEach((c, j) => { c.setAttribute("cx", cx); c.setAttribute("cy", Y(ys[j][k])); });
+    chart.hit.setAttribute("aria-valuenow", xs[k].toFixed(1));
+
+    // cheapest first: the ordering is the answer
+    const rows = items.map((o,j) => ({o, v: ys[j][k]})).sort((a,b) => a.v - b.v);
+    tip.innerHTML = `<span class="yr">At ${xs[k].toFixed(1)} years</span>`
+      + rows.map(r => `<div><i style="background:${accentOf(r.o.i)}"></i>`
+                    + `${LETTERS[r.o.i]} <b>${money(r.v)}</b></div>`).join("");
+    tip.classList.add("on");
+    const wrap = tip.parentElement.getBoundingClientRect(), hr = host.getBoundingClientRect();
+    const dx = hr.left - wrap.left, right = dx + cx + 14;
+    tip.style.left = (right + tip.offsetWidth > wrap.width ? dx + cx - 14 - tip.offsetWidth : right) + "px";
+    tip.style.top  = (hr.top - wrap.top + chart.T + 4) + "px";
+  }
+
+  // Width comes from the DOM, so a resize needs a redraw; rAF collapses a drag into one.
+  let pending = false;
+  window.addEventListener("resize", () => {
+    if(pending) return;
+    pending = true;
+    requestAnimationFrame(() => { pending = false; compute(); });
+  });
 
   function verdict(costs, useHorizon, hYears){
     if($("verdict").hidden) return;              // single offer: nothing to compare
@@ -889,6 +1193,60 @@
     ok($("verdictText").textContent !== "x" && $("glossary").value === undefined, "non-input id was written");
     ok($("out2").querySelector(".row"), "page stopped computing after a bad hash");
     ok(location.hash === hashBefore, "bad hash wrote location.hash");
+
+    // ── graphics ──────────────────────────────────────────────────────────────
+    // slices add up to the total the rows print, to term and at a horizon
+    const gr = calc(400000, 6.25, 30, 12, 3000, 0.55, 450000, 0.78, "declining");
+    const gh = horizon(gr, 7);
+    ok(near(gr.totalInterest + gr.totalPMI + gr.fees + gr.P, gr.totalCost, 0.01),
+       "to-term slices do not sum to total cost");
+    ok(near(gh.interestPaid + gh.pmiPaid + gr.fees + gh.bal + (gr.P - gh.bal), gh.costToClear, 0.01),
+       "horizon slices do not sum to cost to clear");
+
+    // the sampled curve starts at day-one walk-away cost, never falls, ends at the total
+    const gx = Array.from({length: SAMPLES+1}, (_,k) => k*30/SAMPLES);
+    const gs = gx.map(x => horizon(gr, x).costToClear);
+    ok(near(gs[0], gr.P + gr.fees, 0.01), "series does not start at principal + fees: " + gs[0]);
+    ok(gs.every((v,k) => k === 0 || v >= gs[k-1] - 1e-6), "cost to clear decreased");
+    ok(near(gs[SAMPLES], gr.totalCost, 0.01), "series tail " + gs[SAMPLES] + " vs " + gr.totalCost);
+
+    // a shorter term flattens once it ends, so unequal terms still compare
+    const g15 = calc(400000, 6.25, 15, 12, 0, 0, 450000, 0.78, "declining");
+    ok(near(horizon(g15,25).costToClear, horizon(g15,15).costToClear, 0.01), "15yr curve not flat past term");
+
+    // low rate + high fees crosses high rate + low fees exactly once, and later wins
+    const gA = calc(400000, 6.5, 30, 12,  1000, 0, 450000, 0.78, "declining");
+    const gB = calc(400000, 5.9, 30, 12, 12000, 0, 450000, 0.78, "declining");
+    const gys = [gA,gB].map(r => gx.map(x => horizon(r,x).costToClear));
+    const gbe = breakEvens(gx, gys);
+    ok(gbe.length === 1, "expected 1 break-even, got " + gbe.length);
+    ok(gbe[0].win === 1 && gbe[0].year > 1 && gbe[0].year < 20, "break-even " + JSON.stringify(gbe[0]));
+
+    // chart and verdict read the same number: the leader flips across that break-even
+    $("amount").value = "400000"; $("homeValue").value = "900000";   // under 80% LTV, so PMI locks to 0
+    renderOffers(2);
+    $("rate0").value = "6.5"; $("term0").value = "30"; $("freq0").value = "12"; $("fees0").value = "1000";
+    $("rate1").value = "5.9"; $("term1").value = "30"; $("freq1").value = "12"; $("fees1").value = "12000";
+    $("horizon").value = "3";  compute();
+    ok(/>A</.test($("verdictText").innerHTML), "3yr verdict: " + $("verdictText").textContent);
+    $("horizon").value = "25"; compute();
+    ok(/>B</.test($("verdictText").innerHTML), "25yr verdict: " + $("verdictText").textContent);
+    ok($("chart").querySelectorAll("svg .ser").length === 2, "chart did not draw both series");
+    ok($("chart").querySelectorAll(".hz").length === 1, "no holding-period marker");
+    ok($("out0").querySelector(".donut svg circle"), "no donut in the readout");
+
+    // crosshair moves and clears without throwing
+    moveCross(SAMPLES/2);
+    ok($("chart").querySelector(".xhair").style.display !== "none", "crosshair hidden after move");
+    ok($("chartTip").classList.contains("on"), "tooltip did not open");
+    hideCross();
+    ok($("chart").querySelector(".xhair").style.display === "none", "crosshair stuck open");
+
+    // an offer that cannot compute is skipped; all of them failing is an empty state, not a throw
+    $("term0").value = "0"; compute();
+    ok($("chart").querySelectorAll("svg .ser").length === 1, "invalid offer not skipped");
+    $("term1").value = "0"; compute();
+    ok($("chart").querySelector(".chart-empty"), "no empty state when nothing computes");
 
     $("offerCount").value = "1";
     $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";
