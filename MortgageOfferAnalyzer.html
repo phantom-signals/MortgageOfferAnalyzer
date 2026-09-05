@@ -843,6 +843,7 @@
 
   // ── cost-over-time chart ─────────────────────────────────────────────────────
   // horizon() is closed form, so the y value at year x is the number the verdict compares.
+  // This grid places crossings only; the lines are drawn per period, not from here.
   const SAMPLES = 240;
   const accentOf = i => "var(--" + LETTERS[i].toLowerCase() + ")";
 
@@ -893,7 +894,8 @@
     const H = W < 480 ? 240 : 300;
     const L = 56, R = 30, T = 14, B = 34;      // B holds the x-axis band
     const maxYears = Math.max(...items.map(o => o.res.n / o.res.m));
-    const xs = Array.from({length: SAMPLES+1}, (_,k) => k*maxYears/SAMPLES);
+    const N = Math.max(SAMPLES, ...items.map(o => o.res.n));
+    const xs = Array.from({length: N+1}, (_,k) => k*maxYears/N);
     const ys = items.map(o => xs.map(x => horizon(o.res, x).costToClear));
 
     const flat = ys.flat();
@@ -919,9 +921,16 @@
     });
     g += `<text class="axis-t" x="${W-R}" y="${H-B+31}" text-anchor="end">years held</text>`;
 
-    ys.forEach((s, j) => {
-      const d = s.map((v,k) => (k ? "L" : "M") + X(xs[k]).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
-      g += `<path class="ser" d="${d}" stroke="${accentOf(items[j].i)}"></path>`;
+    // A vertex per scheduled payment; any other grid aliases horizon()'s rounding into a staircase.
+    items.forEach(o => {
+      const m = o.res.m, n = o.res.n, stride = Math.max(1, Math.ceil(n/900));
+      const xsO = [];
+      for(let t=0; t<n; t+=stride) xsO.push(t/m);
+      xsO.push(n/m);
+      if(maxYears - n/m > 1e-9) xsO.push(maxYears);   // a shorter term runs on flat to the axis end
+      const d = xsO.map((x,q) => (q ? "L" : "M")
+        + X(x).toFixed(1) + " " + Y(horizon(o.res, x).costToClear).toFixed(1)).join(" ");
+      g += `<path class="ser" d="${d}" stroke="${accentOf(o.i)}"></path>`;
     });
 
     // line-end labels: letter in ink, identity colour on the dot
@@ -966,7 +975,7 @@
       `<span><i class="sw" style="background:${accentOf(o.i)}"></i>Offer ${LETTERS[o.i]}</span>`).join("");
     host.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
 
-    chart = {items, xs, ys, X, Y, W, L, R, T, B, maxYears, host, tip,
+    chart = {items, xs, ys, X, Y, W, L, R, T, B, N, maxYears, host, tip,
              hit: host.querySelector(".hit"), grp: host.querySelector(".xhair"), k: -1};
     chart.hit.addEventListener("pointermove", e => moveCross(pxToIndex(e.clientX)));
     chart.hit.addEventListener("pointerleave", hideCross);
@@ -975,14 +984,14 @@
       const d = {ArrowLeft:-1, ArrowRight:1, PageDown:-10, PageUp:10}[e.key];
       if(d === undefined) return;
       e.preventDefault();
-      moveCross((chart.k < 0 ? SAMPLES/2 : chart.k) + d*(e.shiftKey ? 10 : 1));
+      moveCross((chart.k < 0 ? chart.N/2 : chart.k) + d*(e.shiftKey ? 10 : 1));
     });
   }
 
   const pxToIndex = clientX => {
     const r = chart.host.getBoundingClientRect();
     const px = (clientX - r.left) * (chart.W / (r.width || chart.W));
-    return Math.round((px - chart.L)/(chart.W - chart.L - chart.R) * SAMPLES);
+    return Math.round((px - chart.L)/(chart.W - chart.L - chart.R) * chart.N);
   };
 
   function hideCross(){
@@ -994,7 +1003,7 @@
 
   function moveCross(k){
     if(!chart) return;
-    k = Math.max(0, Math.min(SAMPLES, Math.round(k)));
+    k = Math.max(0, Math.min(chart.N, Math.round(k)));
     chart.k = k;
     const {xs, ys, X, Y, items, grp, tip, host} = chart;
     const cx = X(xs[k]);
@@ -1256,8 +1265,14 @@
     // segments carry their own figure
     ok([...$("bars").querySelectorAll("rect title")].length >= 6, "bar segments have no titles");
 
+    // a vertex per period, or the line aliases into a staircase
+    const gpts = [...$("chart").querySelectorAll("path.ser")]
+      .map(p => p.getAttribute("d").split(/(?=[ML])/).length);
+    ok(gpts.every(c => c === chart.items[0].res.n + 1),
+       "path vertices do not match the payment count: " + gpts.join(","));
+
     // crosshair moves and clears without throwing
-    moveCross(SAMPLES/2);
+    moveCross(chart.N/2);
     ok($("chart").querySelector(".xhair").style.display !== "none", "crosshair hidden after move");
     ok($("chartTip").classList.contains("on"), "tooltip did not open");
     hideCross();
