@@ -78,6 +78,7 @@
     letter-spacing:-.01em;
   }
   .sub{color:var(--slate);font-size:14px;margin:0}
+  .sub+.sub{margin-top:8px}
   /* Sized in em so the mark scales with whatever text it sits beside. */
   .mark{width:1em;height:1em;vertical-align:-.09em;margin-right:.34em}
 
@@ -210,7 +211,7 @@
     margin:10px 0 0;padding:11px 14px;border:1px solid var(--line-strong);border-left:3px solid var(--d);
     border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;line-height:1.5;
   }
-  .notice a{color:var(--a)}
+  .notice a,.sub a{color:var(--a)}
 
   /* share control — .inp carries the look; min-width holds the box while the label swaps */
   .share{text-align:center;margin:18px 0 6px}
@@ -288,6 +289,7 @@
       </svg>
       Mortgage Offer Analyzer
     </h1>
+    <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
     <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Raise the offer count to put up to four offers side by side and see which costs least. Excludes property taxes, homeowners insurance, and escrow.</p>
   </header>
 
