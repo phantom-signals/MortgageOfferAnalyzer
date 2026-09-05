@@ -290,15 +290,15 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Raise the offer count to put up to four offers side by side and see which costs least. Excludes property taxes, homeowners insurance, and escrow.</p>
+    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. It opens on two sample offers &mdash; a lower-fee loan against a rate bought down with points; edit them, or set the offer count from 1 to 4. Excludes property taxes, homeowners insurance, and escrow.</p>
   </header>
 
   <div class="shared">
     <div class="field">
       <label for="offerCount">Offers <span class="hint">&mdash; 1 analyzes a single offer; 2 or more compares them</span></label>
       <select class="inp" id="offerCount">
-        <option value="1" selected>1 offer</option>
-        <option value="2">2 offers</option>
+        <option value="1">1 offer</option>
+        <option value="2" selected>2 offers</option>
         <option value="3">3 offers</option>
         <option value="4">4 offers</option>
       </select>
@@ -309,7 +309,7 @@
     </div>
     <div class="field">
       <label for="horizon">Holding period <span class="hint">&mdash; years until you sell/refinance (optional; blank = full term)</span></label>
-      <input class="inp" id="horizon" type="number" min="0" step="1" placeholder="e.g. 5" inputmode="decimal">
+      <input class="inp" id="horizon" type="number" min="0" step="1" value="10" placeholder="e.g. 10" inputmode="decimal">
     </div>
     <div class="field">
       <label for="homeValue">Home value at purchase <span class="hint">&mdash; lower of sale price or appraisal; drives PMI</span></label>
@@ -343,7 +343,7 @@
       </h2>
       <div class="field">
         <label for="rate0">Annual interest rate (%)</label>
-        <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.25" inputmode="decimal">
+        <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.75" inputmode="decimal">
       </div>
       <div class="field">
         <label for="term0">Term (years)</label>
@@ -355,7 +355,7 @@
       </div>
       <div class="field">
         <label for="fees0">Upfront fees + points ($)</label>
-        <input class="inp" id="fees0" type="number" min="0" step="100" value="3000" inputmode="decimal">
+        <input class="inp" id="fees0" type="number" min="0" step="100" value="1500" inputmode="decimal">
       </div>
       <div class="field">
         <label for="pmi0">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
@@ -1090,11 +1090,12 @@
 
     // count changes preserve surviving cards, re-added cards reset to defaults
     $("rate0").value = "5.5";
+    renderOffers(1);   // drop card 1, so the rebuild below is a fresh clone, not the boot state
     renderOffers(4);
     ok($("rate0").value === "5.5", "rate0 lost on raise");
     renderOffers(2);
     ok($("rate0").value === "5.5", "rate0 lost on lower");
-    ok($("rate1").value === "6.25", "rate1 not default: " + $("rate1").value);
+    ok($("rate1").value === "6.75", "rate1 not default: " + $("rate1").value);
 
     // verdict ranks all offers, not just the first two
     renderOffers(3);
@@ -1112,7 +1113,7 @@
     ok(/>A</.test(vHTML) && />B</.test(vHTML), "tie letters not colored: " + vHTML);
     $("rate2").value = "5"; compute();
     ok(vTxt() === "Offers A, B, and C cost the same.", "three-way tie text: " + vTxt());
-    $("fees1").value = "3001"; $("fees2").value = "3002";   // $1 apart: past the 50-cent tolerance
+    $("fees0").value = "3000"; $("fees1").value = "3001"; $("fees2").value = "3002";   // $1 apart: past the 50-cent tolerance
     compute();
     ok(vTxt() === "Offer A is cheapest by", "dollar gap read as tie: " + vTxt());
     ok($("verdictAmount").firstChild.textContent === "$1", "gap amount " + $("verdictAmount").firstChild.textContent);
@@ -1295,8 +1296,12 @@
   }
 
   // "=" is what separates a state hash from every other hash, #selftest included.
+  // Opening state: everything but these comes from the markup defaults, so this holds only
+  // what makes Offer B a contrast with A (points bought down against higher upfront fees).
+  const DEFAULT_STATE = "rate1=5.75&fees1=11000";
+
   const boot = location.hash.slice(1);
-  if(boot.includes("=")) restore(boot); else renderOffers(+$("offerCount").value);
+  restore(boot.includes("=") ? boot : DEFAULT_STATE);
   if(location.hash === "#selftest"){
     try { demo(); }
     catch(e){ console.error(e); document.title = "SELFTEST FAILED: " + e.message; }
