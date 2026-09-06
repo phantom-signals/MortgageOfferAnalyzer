@@ -267,7 +267,7 @@
 <body>
   <noscript>
     <div style="border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:14px;line-height:1.5">
-      <strong>Calculations are disabled.</strong> This viewer has JavaScript turned off &mdash; email apps block scripts in attachments, so totals and payments cannot compute here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); it works offline.
+      <strong>Calculations are disabled.</strong> This viewer has JavaScript turned off &mdash; email apps block scripts in attachments, so nothing computes here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); it works offline.
     </div>
   </noscript>
   <header>
@@ -305,7 +305,7 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount, then the terms for up to 4 offers, including closing costs, points, and other upfront fees. Results show the monthly payment, total interest, PMI, and total cost; either to full term or to a holding period you set. Excludes property taxes, homeowners insurance, and other recurring payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
+    <p class="sub">Enter a shared loan amount and home value, then the terms for 1 to 4 offers, including closing costs, points, and other upfront fees. Results show the payment per period, total interest, PMI, and total cost; either to full term or to a holding period you set. Excludes property taxes, homeowners insurance, and other recurring payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
   </header>
 
   <div class="shared">
@@ -338,7 +338,7 @@
       </select>
     </div>
     <div class="field">
-      <label for="pmiBasis">PMI premium basis <span class="hint">&mdash; check your rate quote; both are used in practice</span></label>
+      <label for="pmiBasis">PMI premium basis <span class="hint">&mdash; check your rate quote; lenders use both</span></label>
       <select class="inp" id="pmiBasis" title="How the premium is computed each month. Insurers use both conventions; your mortgage insurance disclosure states which applies to you.">
         <option value="declining" selected title="Premium = current scheduled balance x annual PMI rate / 12, so the dollar amount falls as the loan amortizes. Common convention.">Recalculated on declining balance</option>
         <option value="fixed" title="Premium = original loan amount x annual PMI rate / 12, a constant dollar amount until PMI ends. Used by some policies.">Fixed on original loan amount</option>
@@ -416,7 +416,7 @@
 
   <footer>
     <p><strong>Method.</strong> Payment M = P·i·(1+i)<sup>n</sup> / [(1+i)<sup>n</sup>&minus;1], where i = rate&divide;payments-per-year and n = term&times;payments-per-year. Total to term = M&times;n + fees + PMI. EAR = (1+i)<sup>m</sup>&minus;1. Over a holding period, cost = payments made + PMI paid + fees + remaining balance still owed.</p>
-    <p><strong>PMI.</strong> Charged while the <em>scheduled</em> loan balance exceeds the selected share (78% or 80%) of the home&rsquo;s original value, and never past the midpoint of the amortization schedule (HPA &ldquo;final termination&rdquo;). Under the Homeowners Protection Act, servicers must terminate PMI automatically at 78% LTV of original value and must grant a written cancellation request at 80%; original value means the lower of sale price or appraised value at purchase. This model assumes scheduled amortization only &mdash; extra principal payments or appreciation can end PMI sooner, and cancellation at 80% must be requested. This page does not model FHA mortgage insurance (MIP), which follows different rules.</p>
+    <p><strong>PMI.</strong> Charged while the <em>scheduled</em> loan balance exceeds the selected share (78% or 80%) of the home&rsquo;s original value, and never past the midpoint of the amortization schedule (HPA &ldquo;final termination&rdquo;). Under the Homeowners Protection Act, servicers must terminate PMI automatically at 78% LTV of original value and must grant a written cancellation request at 80%; original value means the lower of sale price or appraised value at purchase. This model assumes scheduled amortization only &mdash; extra principal payments or appreciation can end PMI sooner, and you must ask for cancellation at 80%. FHA mortgage insurance (MIP) follows different rules, which this page leaves out.</p>
     <p class="refs">
       Existing calculators to cross-check:<br>
       Bankrate amortization &mdash; <a href="https://www.bankrate.com/mortgages/amortization-calculator/" target="_blank" rel="noopener">bankrate.com/mortgages/amortization-calculator</a><br>
@@ -521,7 +521,7 @@
     <p>Questions, comments, feature requests, or bug reports &mdash; <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">github.com/phantom-signals/MortgageOfferAnalyzer</a></p>
 
     <p class="section-label">Privacy</p>
-    <p>Nothing you enter leaves your device. This page makes no network requests, sets no cookies, stores nothing in your browser, and runs no analytics. No account, no email, no server. <strong>Copy analysis link</strong> writes your figures into the URL in plain text and copies it to your clipboard. That link is the only copy; anyone you send it to can read the numbers in it.</p>
+    <p>Nothing you enter leaves your device. It sets no cookies, stores nothing in your browser, and runs no analytics. No account, no email. A saved copy makes no network requests at all; served from a web host, the page fetches nothing but its own icon. <strong>Copy analysis link</strong> writes your figures into the URL in plain text and copies it to your clipboard. That link is the only copy; anyone you send it to can read the numbers in it.</p>
 
     <p class="section-label" id="terms">Terms of Use</p>
     <p><strong>No advice, no relationship.</strong> This page is an educational calculator. It is not financial, lending, tax, legal, or investment advice, and not an offer, quote, commitment, or solicitation to lend. Use creates no advisory, fiduciary, broker, or client relationship. It is not operated by, affiliated with, endorsed by, or compensated by any lender, broker, or mortgage originator, and makes no referrals.</p>

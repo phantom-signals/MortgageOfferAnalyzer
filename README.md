@@ -1,30 +1,41 @@
 # Mortgage Offer Analyzer
 
-Compare up to four mortgage offers on the same loan amount and see which one
-actually costs least. One self-contained HTML file — no build, no dependencies,
-no network. Open it from disk.
+Compare up to four mortgage offers on the same loan amount and see which costs
+least. One self-contained HTML file — no build, no dependencies, no network
+calls. Open it from disk, or serve it as a static site.
 
 ## Use
 
 Download [`MortgageOfferAnalyzer.html`](MortgageOfferAnalyzer.html) and open it
-in a browser. That's the whole setup.
+in a browser. That's the whole setup. To host it instead, use the included
+Cloudflare static-asset config ([`wrangler.jsonc`](wrangler.jsonc)), which
+serves the page at the root.
 
-Enter a shared loan amount and home value, then each offer's rate, term,
-payment frequency, fees, and PMI rate. Results update as you type: monthly
-payment, total interest, PMI paid, and total cost, with the cheapest offer
-called out. Set a holding period to truncate costs at the point you expect to
-sell or refinance instead of running to full term.
+Pick how many offers to compare: one analyzes a single loan, two or more rank
+them. The `+`/`−` buttons on each card add and remove offers. Enter a shared
+loan amount and home value, then each offer's rate, term, payment frequency,
+fees, and PMI rate. Results update as you type — payment per period, total
+interest, PMI paid, total cost, and a verdict naming the cheapest offer. Set a
+holding period to cut the costs off at the year you expect to sell or
+refinance, instead of running them to full term.
 
-Every input and result label has a hover definition, and the footer carries the
-full glossary.
+Two charts sit under the offers. **Cost breakdown** stacks interest, PMI, fees,
+principal, and any remaining balance on one scale shared by every offer.
+**Cost over time** plots what walking away in any year costs, payoff of the
+balance included, and marks the year the lead changes hands.
+
+Every input and result label carries a definition: hover with a pointer, tap
+the label on a touch screen. The footer holds the full glossary, the method,
+the PMI rules, the privacy statement, and the terms of use.
 
 ## Share a comparison
 
-**Copy link** writes every entered value into the URL and copies it. Opening
-that URL restores the offers exactly, so a comparison can be bookmarked or sent
-to someone. The figures ride in the link in plain text — loan amount, home
-value, rates, fees — so treat a shared link the way you would treat the numbers
-themselves. Nothing is uploaded; the link is the only copy.
+**Copy analysis link** writes every entered value into the URL and copies it.
+Opening that URL restores the offers exactly, so you can bookmark a comparison
+or send it to someone. The figures ride in the link in plain text — loan
+amount, home value, rates, fees — so treat a shared link the way you would
+treat the numbers themselves. The page uploads nothing; the link is the only
+copy.
 
 ## What it computes
 
@@ -42,32 +53,35 @@ where `i` = rate ÷ payments-per-year and `n` = term × payments-per-year.
   the home's original value (78% automatic termination or 80% on written
   request), and never past the amortization midpoint. Premiums can be
   recalculated on the declining balance or fixed on the original loan amount.
+  A loan starting at or below 80% LTV owes no PMI, and its PMI input locks at 0.
 
 ## Not modeled
 
-Property taxes, homeowners insurance, and escrow are excluded — this compares
-loan cost, not total housing cost. PMI assumes scheduled amortization only;
-extra principal or appreciation can end it sooner, and cancellation at 80% must
-be requested in writing. FHA mortgage insurance (MIP) follows different rules
-and is not modeled. Adjustable rates are not modeled — each offer is a fixed
-rate for its full term.
+This page ignores property taxes, homeowners insurance, and escrow: it compares
+loan cost, not total housing cost. PMI assumes scheduled amortization only —
+extra principal or appreciation can end it sooner, and you must ask in writing
+for cancellation at 80%. FHA mortgage insurance (MIP) follows different rules
+and is out of scope. So are adjustable rates: every offer is a fixed rate for
+its full term.
 
-This is a modeling tool, not financial advice. Cross-check anything that
-matters against your lender's own figures or a calculator from
+This is a modeling tool, not financial advice. Check anything that matters
+against your lender's own figures, or against a calculator from
 [Bankrate](https://www.bankrate.com/mortgages/amortization-calculator/),
 [Fannie Mae](https://yourhome.fanniemae.com/calculators-tools/mortgage-calculator),
 or [SmartAsset](https://smartasset.com/mortgage/mortgage-calculator).
 
 ## Self-test
 
-Open the file with `#selftest` appended to the URL. It asserts the payment,
-interest, PMI, and total-cost figures against pinned values, checks PMI
-termination timing, and exercises the offer-card rendering, verdict ranking,
-PMI input locking below 80% LTV, and hover definitions.
+Open the file with `#selftest` appended to the URL. It pins the payment,
+interest, PMI, and total-cost figures against known values and checks when PMI
+terminates. It then exercises the offer cards, the verdict ranking and its tie
+wording, the PMI input lock at or below 80% LTV, the share link's round trip,
+the definitions, and the chart's agreement with the verdict across a
+break-even.
 
 On success the page title becomes `selftest passed`; on failure it becomes
-`SELFTEST FAILED: <reason>` and the error is logged to the console. The title
-is readable from a headless run (`--dump-dom`), so it works in CI.
+`SELFTEST FAILED: <reason>`, and the error goes to the console. A headless run
+(`--dump-dom`) can read the title, so it works in CI.
 
 ## License
 
