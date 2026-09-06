@@ -267,7 +267,7 @@
 <body>
   <noscript>
     <div style="border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:14px;line-height:1.5">
-      <strong>Calculations are off.</strong> This viewer has JavaScript disabled &mdash; email apps block scripts in attachments, so totals and payments cannot compute here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); no internet connection is needed.
+      <strong>Calculations are disabled.</strong> This viewer has JavaScript turned off &mdash; email apps block scripts in attachments, so totals and payments cannot compute here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); it works offline.
     </div>
   </noscript>
   <header>
@@ -305,7 +305,7 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount, then the terms for up to 4 offers. Results show the monthly payment, total interest, PMI, and total cost; either to full term or truncated at a holding period you set. Excludes property taxes, homeowners insurance, or other payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
+    <p class="sub">Enter a shared loan amount, then the terms for up to 4 offers, including closing costs, points, and other upfront fees. Results show the monthly payment, total interest, PMI, and total cost; either to full term or to a holding period you set. Excludes property taxes, homeowners insurance, and other recurring payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
   </header>
 
   <div class="shared">
@@ -333,8 +333,8 @@
     <div class="field">
       <label for="pmiThresh">PMI removal rule</label>
       <select class="inp" id="pmiThresh" title="When PMI stops. Under the federal Homeowners Protection Act: at 80% loan-to-value you may request cancellation in writing; at 78% the servicer must terminate it automatically. Both are measured against the home's original value and require current payments.">
-        <option value="0.80" title="Optimistic case: you request cancellation as soon as the scheduled balance reaches 80% of original home value. Requires a written request and current payments.">Request cancellation at 80% LTV</option>
-        <option value="0.78" selected title="Default case: servicer terminates PMI automatically when the scheduled balance reaches 78% of original home value. No action needed; payments must be current.">Automatic termination at 78% LTV</option>
+        <option value="0.80" title="Optimistic: you request cancellation as soon as the scheduled balance reaches 80% of original home value. Requires a written request and current payments.">Request cancellation at 80% LTV</option>
+        <option value="0.78" selected title="Default: the servicer terminates PMI automatically when the scheduled balance reaches 78% of original home value. No action needed; payments must be current.">Automatic termination at 78% LTV</option>
       </select>
     </div>
     <div class="field">
@@ -380,11 +380,11 @@
     </div>
   </div>
 
-  <p class="section-label">Cost breakdown <span class="hint">&mdash; one scale across every bar, so a longer bar costs more; colors follow each offer&rsquo;s key above</span></p>
+  <p class="section-label">Cost breakdown <span class="hint">&mdash; one scale across every bar, so a longer bar means a higher cost; colors follow each offer&rsquo;s key above</span></p>
   <div class="chart-wrap"><div id="bars"></div></div>
 
   <!-- The verdict reads one point off these curves; where the lowest curve changes, it flips. -->
-  <p class="section-label">Cost over time <span class="hint">&mdash; what each offer costs to walk away at any point, including payoff of the balance still owed</span></p>
+  <p class="section-label">Cost over time <span class="hint">&mdash; what walking away at any point costs, including payoff of the balance still owed</span></p>
   <div class="chart-wrap">
     <div class="chart-legend" id="chartLegend"></div>
     <div id="chart"></div>
@@ -403,7 +403,7 @@
   <!-- Outside the verdict: the verdict hides at one offer, the disclaimer always shows. -->
   <p class="notice">
     <strong>Estimates only &mdash; not financial advice.</strong>
-    A model, not a quote; figures may not match any lender&rsquo;s.
+    A model, not a quote; figures may differ from any lender&rsquo;s.
     Verify against your official Loan Estimate.
     No warranty &mdash; see <a href="#terms">Terms of Use</a>.
   </p>
@@ -411,12 +411,12 @@
   <!-- Sibling of the verdict, not a child: the verdict is hidden at one offer, which is still worth sharing. -->
   <div class="share">
     <button class="inp" id="copyLink" type="button">Copy analysis link</button>
-    <span class="hint">The link carries the figures you entered &mdash; loan amount, home value, rates, fees. Share it only with people you want to see them.</span>
+    <span class="hint">The link carries the figures you entered &mdash; loan amount, home value, rates, fees. Share it only with people you trust with those figures.</span>
   </div>
 
   <footer>
     <p><strong>Method.</strong> Payment M = P·i·(1+i)<sup>n</sup> / [(1+i)<sup>n</sup>&minus;1], where i = rate&divide;payments-per-year and n = term&times;payments-per-year. Total to term = M&times;n + fees + PMI. EAR = (1+i)<sup>m</sup>&minus;1. Over a holding period, cost = payments made + PMI paid + fees + remaining balance still owed.</p>
-    <p><strong>PMI.</strong> Charged while the <em>scheduled</em> loan balance exceeds the selected share (78% or 80%) of the home&rsquo;s original value, and never past the midpoint of the amortization schedule (HPA &ldquo;final termination&rdquo;). Under the Homeowners Protection Act, servicers must terminate PMI automatically at 78% LTV of original value and must grant a written cancellation request at 80%; original value means the lower of sale price or appraised value at purchase. This model assumes scheduled amortization only &mdash; extra principal payments or appreciation can end PMI sooner, and cancellation at 80% must be requested. FHA mortgage insurance (MIP) follows different rules and is not modeled.</p>
+    <p><strong>PMI.</strong> Charged while the <em>scheduled</em> loan balance exceeds the selected share (78% or 80%) of the home&rsquo;s original value, and never past the midpoint of the amortization schedule (HPA &ldquo;final termination&rdquo;). Under the Homeowners Protection Act, servicers must terminate PMI automatically at 78% LTV of original value and must grant a written cancellation request at 80%; original value means the lower of sale price or appraised value at purchase. This model assumes scheduled amortization only &mdash; extra principal payments or appreciation can end PMI sooner, and cancellation at 80% must be requested. This page does not model FHA mortgage insurance (MIP), which follows different rules.</p>
     <p class="refs">
       Existing calculators to cross-check:<br>
       Bankrate amortization &mdash; <a href="https://www.bankrate.com/mortgages/amortization-calculator/" target="_blank" rel="noopener">bankrate.com/mortgages/amortization-calculator</a><br>
@@ -431,10 +431,10 @@
          "Term". Entries with no data-match are glossary-only — they appear in the prose above. -->
     <dl class="glossary" id="glossary">
       <dt data-match="offers">Offer</dt>
-      <dd>One lender&rsquo;s quoted loan terms &mdash; rate, term, fees, and mortgage insurance &mdash; for the same loan amount, so competing quotes can be compared side by side.</dd>
+      <dd>One lender&rsquo;s quoted loan terms &mdash; rate, term, fees, and mortgage insurance &mdash; for the same loan amount, so you can compare competing quotes side by side.</dd>
 
       <dt data-match="loan amount|principal">Principal (loan amount)</dt>
-      <dd>The sum you borrow, before any interest; each payment splits between interest owed and principal repaid, and the unpaid principal is your balance.</dd>
+      <dd>The sum you borrow, before interest; each payment splits between interest owed and principal repaid, and what remains unpaid is your balance.</dd>
 
       <dt data-match="holding period">Holding period</dt>
       <dd>How long you expect to keep the loan before selling or refinancing; costs are truncated there instead of running to full term.</dd>
@@ -452,7 +452,7 @@
       <dd>The nominal yearly rate quoted on the loan, divided by the number of payments per year to get the rate charged each period.</dd>
 
       <dt data-match="payments per year">Payments per year</dt>
-      <dd>How many payments the schedule makes annually &mdash; 12 for monthly, 26 for biweekly &mdash; which sets both the periodic rate and the total number of payments.</dd>
+      <dd>How many payments the schedule makes annually &mdash; 12 for monthly, 26 for biweekly. This sets both the periodic rate and the number of payments.</dd>
 
       <dt data-match="upfront fees|points">Upfront fees and points</dt>
       <dd>Cash paid at closing for origination and other charges, plus points paid to buy the rate down; one point is 1% of the loan amount.</dd>
@@ -464,13 +464,13 @@
       <dd>The scheduled payment covering interest owed plus principal repaid; it excludes mortgage insurance, property taxes, homeowners insurance, and escrow.</dd>
 
       <dt data-match="effective annual rate">EAR (effective annual rate)</dt>
-      <dd>What the nominal rate actually costs over a year once compounding within the year is counted, so loans with different payment frequencies compare fairly.</dd>
+      <dd>What the nominal rate costs over a year once you count compounding within it, so loans with different payment frequencies compare fairly.</dd>
 
       <dt data-match="initial ltv">Initial LTV</dt>
       <dd>The loan-to-value ratio at closing: loan amount divided by home value at purchase; above 80% the lender requires mortgage insurance.</dd>
 
       <dt data-match="ltv|loan-to-value">LTV (loan-to-value)</dt>
-      <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and is the trigger for removing mortgage insurance.</dd>
+      <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and triggers removal of mortgage insurance.</dd>
 
       <dt data-match="total interest">Total interest</dt>
       <dd>Every dollar of interest paid across the full amortization schedule: all payments made minus the principal borrowed.</dd>
@@ -485,7 +485,7 @@
       <dd>All mortgage insurance premiums charged from the first payment until PMI ends.</dd>
 
       <dt data-match="total cost">Total cost</dt>
-      <dd>Everything the loan costs to full term: all payments made, plus upfront fees, plus total mortgage insurance.</dd>
+      <dd>What the loan costs to full term: all payments made, plus upfront fees, plus total mortgage insurance.</dd>
 
       <dt data-match="remaining balance">Remaining balance</dt>
       <dd>Principal still owed at the end of the holding period, which you must pay off when you sell or refinance.</dd>
@@ -494,7 +494,7 @@
       <dd>What the loan costs if you leave at the end of the holding period: payments made, plus mortgage insurance paid, plus upfront fees, plus the remaining balance.</dd>
 
       <dt data-match="term">Term</dt>
-      <dd>The number of years the amortization schedule runs, which fixes the payment size; 30 years is standard, and shorter terms cost more each month but less overall.</dd>
+      <dd>The years the amortization schedule runs, which sets the payment size. Thirty years is standard; shorter terms cost more each month, less overall.</dd>
 
       <dt data-match="pmi">PMI (private mortgage insurance)</dt>
       <dd>Insurance the lender requires while the loan is large relative to the home&rsquo;s value; it protects the lender, not you, and is charged on top of principal and interest.</dd>
@@ -509,13 +509,13 @@
       <dd>The fixed schedule that retires the loan through equal payments, with interest taking most of each early payment and principal most of each late one.</dd>
 
       <dt>Escrow</dt>
-      <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; not modeled here.</dd>
+      <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; this page does not model it.</dd>
 
       <dt>MIP (mortgage insurance premium)</dt>
-      <dd>The FHA equivalent of PMI, which follows different rules &mdash; often for the life of the loan &mdash; and is not modeled here.</dd>
+      <dd>The FHA equivalent of PMI, which follows different rules &mdash; often for the life of the loan; this page does not model it.</dd>
     </dl>
 
-    <p style="margin-top:16px">General information, not financial advice. Verify against your official Loan Estimate. Note compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
+    <p style="margin-top:16px">Compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
 
     <p class="section-label">Feedback</p>
     <p>Questions, comments, feature requests, or bug reports &mdash; <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">github.com/phantom-signals/MortgageOfferAnalyzer</a></p>
@@ -1087,7 +1087,7 @@
       vAmt.innerHTML = money(costs[1].cost - best.cost) + `<small>${money(best.cost)} total</small>`;
     }
     vNote.textContent = "Compared " + (useHorizon
-      ? `over ${hYears} year(s), including PMI and payoff of the remaining balance`
+      ? `over ${hYears} ${hYears === 1 ? "year" : "years"}, including upfront fees, PMI, and payoff of the remaining balance`
       : "over the full term, including upfront fees and PMI") + ".";
   }
 
