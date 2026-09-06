@@ -23,7 +23,7 @@
     --slate:#5d6670;
     --line:#d9dcd6;
     --line-strong:#c2c7bf;
-    /* Offer accents, also chart marks: each step clears the contrast and colour-vision
+    /* Offer accents, also chart marks: each step clears the contrast and color-vision
        gates against the card. */
     --a:#0081a2;        /* Offer A accent */
     --b:#9a5a1f;        /* Offer B accent */
@@ -300,7 +300,7 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Compared up to 4 offers. Excludes property taxes, homeowners insurance, or other payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
+    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Compare up to 4 offers. Excludes property taxes, homeowners insurance, or other payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
   </header>
 
   <div class="shared">
@@ -375,7 +375,7 @@
     </div>
   </div>
 
-  <p class="section-label">Cost breakdown <span class="hint">&mdash; one scale across every bar, so a longer bar costs more; colours follow each offer&rsquo;s key above</span></p>
+  <p class="section-label">Cost breakdown <span class="hint">&mdash; one scale across every bar, so a longer bar costs more; colors follow each offer&rsquo;s key above</span></p>
   <div class="chart-wrap"><div id="bars"></div></div>
 
   <!-- The verdict reads one point off these curves; where the lowest curve changes, it flips. -->
@@ -700,7 +700,7 @@
             costToClear: paid + pmiPaid + fees + Math.max(bal,0)}; // + payoff of remaining
   }
 
-  // Colour is fixed per component, never derived from size or the holding period. Borrowing
+  // Color is fixed per component, never derived from size or the holding period. Borrowing
   // costs share the card's accent as a one-hue ramp; principal and the balance owed are
   // neutral. The steps are validated as a set — re-step them together.
   const SEGS = [
@@ -716,7 +716,7 @@
     ? [h.interestPaid, h.pmiPaid, res.fees, h.bal, res.P - h.bal]
     : [res.totalInterest, res.totalPMI, res.fees, 0, res.P];
 
-  // Colour key and exact figures for one offer.
+  // Color key and exact figures for one offer.
   function breakdownHTML(res, h){
     const amts = segAmounts(res, h);
     if(!(amts.reduce((a,b) => a+b, 0) > 0)) return "";
@@ -961,7 +961,7 @@
       g += `<path class="ser" d="${d}" stroke="${accentOf(o.i)}"></path>`;
     });
 
-    // line-end labels: letter in ink, identity colour on the dot
+    // line-end labels: letter in ink, identity color on the dot
     const ends = ys.map((s,j) => ({j, y: Y(s[s.length-1])})).sort((a,b) => a.y - b.y);
     for(let q=1;q<ends.length;q++) if(ends[q].y - ends[q-1].y < 13) ends[q].y = ends[q-1].y + 13;
     ends.forEach(e => {
@@ -1301,7 +1301,7 @@
     ok(/>B</.test($("verdictText").innerHTML), "25yr verdict: " + $("verdictText").textContent);
     ok($("chart").querySelectorAll("svg .ser").length === 2, "chart did not draw both series");
     ok($("chart").querySelectorAll(".hz").length === 1, "no holding-period marker");
-    ok($("out0").querySelector(".breakdown .sw"), "no colour key in the readout");
+    ok($("out0").querySelector(".breakdown .sw"), "no color key in the readout");
 
     // one bar per offer on one scale: cheaper is shorter
     ok($("bars").querySelectorAll("clipPath").length === 2, "expected 2 bars");
