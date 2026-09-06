@@ -241,7 +241,7 @@
     box-shadow:0 4px 14px rgba(0,0,0,.22);
   }
   .tap-hint{display:none}
-  @media (hover:none){.tap-hint{display:inline}}
+  @media (hover:none){.tap-hint{display:block;margin-top:6px}}
 
   /* glossary — single source for both the printed definitions and the hover text */
   .glossary{margin:0;font-size:12px;color:var(--slate);line-height:1.6}
@@ -300,7 +300,7 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. It opens on two sample offers &mdash; a lower-fee loan against a rate bought down with points; edit them, or set the offer count from 1 to 4. Excludes property taxes, homeowners insurance, and escrow. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
+    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. Compared up to 4 offers. Excludes property taxes, homeowners insurance, or other payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
   </header>
 
   <div class="shared">
@@ -622,13 +622,17 @@
 
   // Touch has no hover, so the title text needs a tap path. Delegated because readouts
   // re-render on every edit. Input labels excluded: a label click already focuses its input.
-  document.addEventListener("click", e => {
-    const el = e.target.closest(".row .k"), pop = $("defPop");
-    if(!el || !el.title || !pop || !pop.showPopover) return;
-    pop.textContent = el.title;
-    pop.hidePopover();          // reopen so a second label replaces an open popover
-    pop.showPopover();
-  });
+  const defPop = $("defPop");
+  if(defPop.showPopover){
+    document.addEventListener("click", e => {
+      const el = e.target.closest(".row .k");
+      if(!el || !el.title) return;
+      defPop.textContent = el.title;
+      defPop.hidePopover();     // reopen so a second label replaces an open popover
+      defPop.showPopover();
+    });
+    addEventListener("scroll", () => defPop.hidePopover(), {passive:true});
+  }
 
   const money = x => "$" + (Math.round(x) || 0).toLocaleString("en-US");   // || 0 so float noise never prints "-$0"
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1188,7 +1192,9 @@
       ok(pop.textContent === ltvRow.title, "popover text is not the row's definition: " + pop.textContent);
       const dds = [...document.querySelectorAll("#glossary dd")].map(dd => dd.textContent.trim());
       ok(dds.includes(pop.textContent), "popover text is not a glossary definition");
-      pop.hidePopover();
+      ltvRow.click();
+      dispatchEvent(new Event("scroll"));
+      ok(!pop.matches(":popover-open"), "scroll did not dismiss the popover");
       document.querySelector('label[for="pmi1"]').click();
       ok(!pop.matches(":popover-open"), "input label opened the popover");
     }
