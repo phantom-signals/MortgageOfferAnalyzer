@@ -233,6 +233,16 @@
   footer a:hover{border-bottom-color:var(--a)}
   .refs{font-size:12px;color:var(--slate);line-height:1.8}
 
+  /* definition popover; border and margin override the UA popover defaults */
+  #defPop{
+    border:0;margin:auto;max-width:40ch;
+    background:var(--verdict-bg);color:var(--verdict-fg);border-radius:8px;
+    padding:12px 14px;font-size:13px;line-height:1.5;
+    box-shadow:0 4px 14px rgba(0,0,0,.22);
+  }
+  .tap-hint{display:none}
+  @media (hover:none){.tap-hint{display:inline}}
+
   /* glossary — single source for both the printed definitions and the hover text */
   .glossary{margin:0;font-size:12px;color:var(--slate);line-height:1.6}
   .glossary dt{font-weight:650;color:var(--ink);margin-top:10px}
@@ -290,7 +300,7 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. It opens on two sample offers &mdash; a lower-fee loan against a rate bought down with points; edit them, or set the offer count from 1 to 4. Excludes property taxes, homeowners insurance, and escrow.</p>
+    <p class="sub">Enter a shared loan amount, then the terms of the offer. Results show the monthly payment, total interest, PMI, and total cost &mdash; either to full term or truncated at a holding period you set. It opens on two sample offers &mdash; a lower-fee loan against a rate bought down with points; edit them, or set the offer count from 1 to 4. Excludes property taxes, homeowners insurance, and escrow. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
   </header>
 
   <div class="shared">
@@ -516,6 +526,9 @@
     <p><strong>Changes and license.</strong> These terms may change without notice; the version on this page when you use it applies. The source is separately licensed under the MIT License, whose warranty disclaimer applies to any copy you obtain. If you do not accept these terms, do not use this page.</p>
   </footer>
 
+<!-- filled by the definition tap handler -->
+<div id="defPop" popover></div>
+
 <script>
 (function(){
   const $ = id => document.getElementById(id);
@@ -606,6 +619,16 @@
       if(t) el.title = t;
     });
   }
+
+  // Touch has no hover, so the title text needs a tap path. Delegated because readouts
+  // re-render on every edit. Input labels excluded: a label click already focuses its input.
+  document.addEventListener("click", e => {
+    const el = e.target.closest(".row .k"), pop = $("defPop");
+    if(!el || !el.title || !pop || !pop.showPopover) return;
+    pop.textContent = el.title;
+    pop.hidePopover();          // reopen so a second label replaces an open popover
+    pop.showPopover();
+  });
 
   const money = x => "$" + (Math.round(x) || 0).toLocaleString("en-US");   // || 0 so float noise never prints "-$0"
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1155,6 +1178,20 @@
     $("horizon").value = "5"; compute();                   // renders the holding-period rows too
     const ltvRow = [...$("out0").querySelectorAll(".row .k")].find(k => k.textContent === "Initial LTV");
     ok(ltvRow && /loan-to-value/i.test(ltvRow.title), "Initial LTV row tooltip: " + (ltvRow && ltvRow.title));
+
+    // tap path: readout rows open the popover, input labels do not
+    const pop = $("defPop");
+    if(pop.showPopover){
+      ltvRow.click();
+      ok(pop.popover === "auto", "popover is not auto, so outside-tap and Escape dismiss are lost");
+      ok(pop.matches(":popover-open"), "row tap did not open the definition popover");
+      ok(pop.textContent === ltvRow.title, "popover text is not the row's definition: " + pop.textContent);
+      const dds = [...document.querySelectorAll("#glossary dd")].map(dd => dd.textContent.trim());
+      ok(dds.includes(pop.textContent), "popover text is not a glossary definition");
+      pop.hidePopover();
+      document.querySelector('label[for="pmi1"]').click();
+      ok(!pop.matches(":popover-open"), "input label opened the popover");
+    }
 
     // every rendered label and readout row resolves to a definition
     const undef = [...document.querySelectorAll(".field label, .row .k")]
