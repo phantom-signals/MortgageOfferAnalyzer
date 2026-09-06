@@ -6,3 +6,6 @@ wrangler.jsonc
 openspec
 README.md
 LICENSE
+tools
+.gitattributes
+.DS_Store

@@ -1,6 +1,7 @@
-"""Trace the page's #mark SVG as the apple-touch-icon and print the <link> tag to
-paste back in. The SVG stays the definition; this raster copy is synced by hand."""
-import base64, io
+"""Trace the page's #mark SVG into icon-180.png, the bookmark and home-screen icon.
+Mobile browsers fetch icons over the network and ignore data: URIs, so the mark needs
+a real file beside the page. The SVG stays the definition; this copy is synced by hand."""
+import io
 from PIL import Image, ImageDraw
 
 S, SS = 180, 4                            # output size, supersample factor
@@ -19,7 +20,5 @@ d.line(pts((3, 13.9), (16, 3.4), (29, 13.9), (29, 28.6), (3, 28.6), (3, 13.9), (
 for x, y in ((9, 20), (14, 17), (19, 14)):        # .mark-b bars
     d.rounded_rectangle([x * k, y * k, (x + 4) * k, 25.6 * k], radius=k, fill=INK)
 
-buf = io.BytesIO()
-img.resize((S, S), Image.LANCZOS).quantize(colors=16).save(buf, "PNG", optimize=True)
-print(f'<link rel="apple-touch-icon icon" href="data:image/png;base64,'
-      f'{base64.b64encode(buf.getvalue()).decode()}">')
+img.resize((S, S), Image.LANCZOS).quantize(colors=16).save(
+    "icon-180.png", optimize=True)

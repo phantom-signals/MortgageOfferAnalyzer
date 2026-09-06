@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Nothing is fetched: no scripts, styles, fonts, or images from anywhere, and no network
-     calls of any kind. The CSS and script are inline, hence the two 'unsafe-inline' grants;
-     images are inline data: URIs, hence img-src data:. -->
+<!-- Nothing is fetched but the touch icon, and nothing cross-origin ever. The CSS and
+     script are inline, hence the two 'unsafe-inline' grants; images are inline data: URIs,
+     hence img-src data:, and 'self' covers the sibling icon file the page links to. -->
 <meta http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: 'self'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <!-- House-with-bar-chart mark. Left empty: the script serializes the #mark SVG,
-     the one definition of the artwork, into this href. -->
+     the one definition of the artwork, into this href. Mobile browsers ignore it and
+     take the raster sibling below; regenerate that with tools/mkicon.py. -->
 <link rel="icon" id="favicon">
-<!-- Raster mark for iOS bookmark and home-screen icons, which do not use the SVG
-     favicon. Static, and traced by hand from #mark: favicon fetchers parse the served
-     markup and never run the script that fills the href above. -->
-<link rel="apple-touch-icon icon" href="data:image/png;base64,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">
+<!-- "apple-touch-icon" is the rel keyword every mobile browser matches on,
+     Android included; only the filename is ours to name. -->
+<link rel="apple-touch-icon icon" sizes="180x180" href="/icon-180.png">
 <title>Mortgage Offer Analyzer</title>
 <style>
   :root{
