@@ -13,9 +13,11 @@
      the one definition of the artwork, into this href. Mobile browsers ignore it and
      take the raster sibling below; regenerate that with tools/mkicon.py. -->
 <link rel="icon" id="favicon">
-<!-- "apple-touch-icon" is the rel keyword every mobile browser matches on,
-     Android included; only the filename is ours to name. -->
-<link rel="apple-touch-icon icon" sizes="180x180" href="/icon-180.png">
+<!-- "apple-touch-icon" is the rel keyword every mobile browser matches on, Android
+     included; only the filename is ours to name. Kept on its own element because
+     WebKit can read a multi-token rel as a plain icon and never register the touch
+     icon at all. -->
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
 <title>Mortgage Offer Analyzer</title>
 <style>
   :root{
