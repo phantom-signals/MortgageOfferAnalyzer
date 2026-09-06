@@ -74,7 +74,7 @@ The tap-to-open path SHALL add no visible affordance to any label — no underli
 
 ### Requirement: Touch pointers get one hint
 
-The page SHALL carry one short sentence telling touch readers that row labels are tappable. It SHALL appear only where the primary pointer cannot hover, SHALL sit inside the existing intro prose rather than in a new block, and SHALL be static text — no dismissal control, no first-run logic, no stored state.
+The page SHALL carry one short sentence telling touch readers that row labels are tappable. It SHALL appear only where the primary pointer cannot hover, SHALL sit inside the existing intro paragraph rather than in a section of its own, and SHALL be static text — no dismissal control, no first-run logic, no stored state.
 
 #### Scenario: Hint shown on a touch device
 

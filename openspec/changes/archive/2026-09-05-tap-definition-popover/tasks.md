@@ -35,4 +35,4 @@
 ## 6. Spec sync
 
 - [x] 6.1 Run `openspec validate tap-definition-popover` and confirm it passes.
-- [ ] 6.2 Archive the change so the `term-glossary` delta folds into `openspec/specs/term-glossary/spec.md`.
+- [x] 6.2 Archive the change so the `term-glossary` delta folds into `openspec/specs/term-glossary/spec.md`.
