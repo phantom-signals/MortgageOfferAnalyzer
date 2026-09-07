@@ -9,3 +9,7 @@ LICENSE
 tools
 .gitattributes
 .DS_Store
+node_modules
+package.json
+package-lock.json
+MATH.md

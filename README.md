@@ -4,6 +4,10 @@ Compare up to four mortgage offers on the same loan amount and see which costs
 least. One self-contained HTML file — no build, no dependencies, no network
 calls. Open it from disk, or serve it as a static site.
 
+A companion page, [`math.html`](math.html), derives every formula the analyzer
+uses from first principles. It is generated from [`MATH.md`](MATH.md); see
+[Building the math page](#building-the-math-page).
+
 ## Use
 
 Download [`MortgageOfferAnalyzer.html`](MortgageOfferAnalyzer.html) and open it
@@ -54,6 +58,31 @@ where `i` = rate ÷ payments-per-year and `n` = term × payments-per-year.
   request), and never past the amortization midpoint. Premiums can be
   recalculated on the declining balance or fixed on the original loan amount.
   A loan starting at or below 80% LTV owes no PMI, and its PMI input locks at 0.
+
+## The math
+
+[`MATH.md`](MATH.md) is the full derivation, in five parts: the amortization
+recurrence and the payment formula, the balance curve and its shape, the PMI
+schedule and its termination rules, the two cost totals and what they leave
+out, and the cost-over-time chart. It is written for a reader who knows
+math but not finance.
+
+[`math.html`](math.html) is that document as a web page, linked from the
+analyzer's Method footnote. The math is MathML rendered natively by the
+browser, so the page fetches nothing and needs no script — the same
+`default-src 'none'` posture as the analyzer itself.
+
+### Building the math page
+
+The analyzer needs no build. The math page does, since Markdown and TeX have to
+become HTML and MathML:
+
+```
+npm install          # markdown-it + @vscode/markdown-it-katex, dev-only
+npm run build:math   # MATH.md -> math.html
+```
+
+Edit `MATH.md`, never `math.html` — the latter is generated and overwritten.
 
 ## Not modeled
 

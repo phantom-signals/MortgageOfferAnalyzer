@@ -1,0 +1,11 @@
+{
+  "name": "mortgage-offer-analyzer",
+  "private": true,
+  "scripts": {
+    "build:math": "node tools/mkmath.js"
+  },
+  "devDependencies": {
+    "@vscode/markdown-it-katex": "^1.1.2",
+    "markdown-it": "^14.1.0"
+  }
+}
