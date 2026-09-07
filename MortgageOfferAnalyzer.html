@@ -647,7 +647,7 @@
   const moneyK = x => "$" + compact.format(Math.round(x));
 
   // (1+i)^k - 1, computed so tiny i survives: pow(1+i,k)-1 loses every significant
-  // digit to cancellation once i is small, which drove payments negative or infinite.
+  // digit to cancellation once i is small, which can drive payments negative or infinite.
   const powm1 = (i,k) => Math.expm1(k*Math.log1p(i));
 
   function calc(P, ratePct, termYears, m, fees, pmiRatePct, homeValue, thresh, basis){
