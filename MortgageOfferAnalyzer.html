@@ -41,6 +41,10 @@
     --good:#2f6f4e;
     --verdict-bg:#161a1d;
     --verdict-fg:#f4f5f2;
+    /* verdict bar only; tooltip and popover stay on --verdict-* */
+    --banner-bg:var(--card);
+    --banner-fg:var(--ink);
+    --banner-line:var(--line-strong);
     --shadow:0 1px 2px rgba(20,26,29,.06),0 8px 24px rgba(20,26,29,.05);
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
     --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -62,6 +66,9 @@
       --good:#7fc9a3;
       --verdict-bg:#0c0e10;
       --verdict-fg:#e8eaec;
+      --banner-bg:var(--verdict-bg);
+      --banner-fg:var(--verdict-fg);
+      --banner-line:transparent;
       --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
     }
   }
@@ -229,7 +236,7 @@
 
   /* verdict bar */
   .verdict{
-    margin:22px 0;background:var(--verdict-bg);color:var(--verdict-fg);border-radius:12px;
+    margin:22px 0;background:var(--banner-bg);color:var(--banner-fg);border:1px solid var(--banner-line);border-radius:12px;
     padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
     gap:16px;flex-wrap:wrap;
   }
