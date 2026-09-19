@@ -146,6 +146,22 @@
 
   /* results */
   .readout{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  /* fold: summary keeps payment and headline total visible while closed */
+  .fold{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+  .fold .readout{margin-top:10px}
+  .fold summary{
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;cursor:pointer;list-style:none;
+    font-family:var(--mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;
+  }
+  .fold summary::-webkit-details-marker{display:none}
+  .fold summary::before{
+    content:"";align-self:center;width:6px;height:6px;margin-right:-4px;
+    border:solid var(--slate);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);transition:transform .15s;
+  }
+  .fold[open] summary::before{transform:rotate(45deg)}
+  .fold[open] summary{font-size:12px;font-weight:400;color:var(--slate)}
+  .fold summary small{font-family:var(--sans);font-size:12px;font-weight:400;color:var(--slate)}
+  .fold summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
   .row{
     display:flex;justify-content:space-between;align-items:baseline;
     padding:5px 0;font-size:13px;gap:12px;
@@ -157,9 +173,20 @@
   .row.total .v{font-size:15px}
 
   /* cost breakdown */
-  .breakdown{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
-  .breakdown .k{display:flex;align-items:center;gap:7px}
   .sw{width:10px;height:10px;border-radius:2px;flex:none}
+  /* one key for every bar, drawn in Offer A's accent */
+  #costTable{--accent:var(--a);overflow-x:auto;margin-top:10px}
+  #costTable table{border-collapse:collapse;width:100%;font-size:13px}
+  #costTable th,#costTable td{padding:5px 0 5px 12px;text-align:right;white-space:nowrap}
+  #costTable td{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+  #costTable thead th{font-size:12px;font-weight:700;letter-spacing:.14em}
+  #costTable tr>:first-child{position:sticky;left:0;background:var(--card);text-align:left;padding-left:0;white-space:normal}
+  #costTable .k{font-weight:400;color:var(--slate)}
+  #costTable .k div{display:flex;gap:7px}   /* a wrapped label keeps its swatch beside it */
+  #costTable .sw{margin-top:.35em}
+  #costTable .total>*{border-top:1px dashed var(--line-strong);padding-top:9px}
+  #costTable .total .k{color:var(--ink);font-weight:650}
+  #costTable .total td{font-size:15px}
   #bars svg{display:block}
   #bars .bar-t{font-family:var(--sans);font-size:12px;font-weight:650;fill:var(--ink)}
   #bars .bar-t.num{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
@@ -202,7 +229,7 @@
 
   /* verdict bar */
   .verdict{
-    margin:22px 0 8px;background:var(--verdict-bg);color:var(--verdict-fg);border-radius:12px;
+    margin:22px 0;background:var(--verdict-bg);color:var(--verdict-fg);border-radius:12px;
     padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
     gap:16px;flex-wrap:wrap;
   }
@@ -260,6 +287,10 @@
     .row{font-size:14px}
     .verdict{padding:14px 16px}
     .chart-wrap{padding:12px 10px 8px}
+    #costTable table{font-size:12px}
+    #costTable th,#costTable td{padding-left:6px}
+    #costTable .k div{gap:5px}
+    #costTable .total td{font-size:12px}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -346,6 +377,15 @@
     </div>
   </div>
 
+  <div class="verdict" id="verdict" hidden>
+    <div>
+      <p class="label">Verdict</p>
+      <p class="headline" id="verdictText">&mdash;</p>
+      <p class="horizon-note" id="horizonNote"></p>
+    </div>
+    <div class="amount" id="verdictAmount">&mdash;</div>
+  </div>
+
   <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
   <div class="offers">
     <div class="offer a">
@@ -376,12 +416,16 @@
         <label for="pmi0">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
         <input class="inp" id="pmi0" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
       </div>
-      <div class="readout" id="out0"></div>
+      <!-- Outside #out0, so re-renders keep the open state. -->
+      <details class="fold">
+        <summary id="sum0"></summary>
+        <div class="readout" id="out0"></div>
+      </details>
     </div>
   </div>
 
-  <p class="section-label">Cost breakdown <span class="hint">&mdash; one scale across every bar, so a longer bar means a higher cost; colors follow each offer&rsquo;s key above</span></p>
-  <div class="chart-wrap"><div id="bars"></div></div>
+  <p class="section-label"><span id="barsHead">Cost to walk away</span> <span class="hint">&mdash; <span id="barsHint"></span></span></p>
+  <div class="chart-wrap"><div id="bars"></div><div id="costTable"></div></div>
 
   <!-- The verdict reads one point off these curves; where the lowest curve changes, it flips. -->
   <p class="section-label">Cost over time <span class="hint">&mdash; what walking away at any point costs, including payoff of the balance still owed</span></p>
@@ -389,15 +433,6 @@
     <div class="chart-legend" id="chartLegend"></div>
     <div id="chart"></div>
     <div class="tip" id="chartTip"></div>
-  </div>
-
-  <div class="verdict" id="verdict" hidden>
-    <div>
-      <p class="label">Verdict</p>
-      <p class="headline" id="verdictText">&mdash;</p>
-      <p class="horizon-note" id="horizonNote"></p>
-    </div>
-    <div class="amount" id="verdictAmount">&mdash;</div>
   </div>
 
   <!-- Outside the verdict: the verdict hides at one offer, the disclaimer always shows. -->
@@ -542,6 +577,9 @@
   $("favicon").href = "data:image/svg+xml," + encodeURIComponent($("mark").outerHTML);
   const LETTERS = ["A","B","C","D"];
   const offers = document.querySelector(".offers");
+  // Readouts open where cards sit side by side, folded where they stack; clones inherit it.
+  // ponytail: decided once at load, rotation does not re-decide; set it in the resize handler if needed.
+  offers.querySelector(".fold").open = !matchMedia("(max-width:640px)").matches;
   // Captured before any edit or compute, so clones carry the default value
   // attributes and an empty readout.
   const card0HTML = offers.firstElementChild.outerHTML;
@@ -618,7 +656,7 @@
   // use. Elements that carry hand-written title text are left alone.
   // ponytail: naive substring scan, ~25 entries x ~25 elements; index the tokens if it ever grows.
   function annotate(root){
-    root.querySelectorAll(".field label, .row .k").forEach(el => {
+    root.querySelectorAll(".field label, .row .k, #costTable .k").forEach(el => {
       if(el.title) return;
       const t = defFor(el.textContent);
       if(t) el.title = t;
@@ -630,7 +668,7 @@
   const defPop = $("defPop");
   if(defPop.showPopover){
     document.addEventListener("click", e => {
-      const el = e.target.closest(".row .k");
+      const el = e.target.closest(".row .k, #costTable .k");
       if(!el || !el.title) return;
       defPop.textContent = el.title;
       defPop.hidePopover();     // reopen so a second label replaces an open popover
@@ -642,7 +680,7 @@
   const money = x => "$" + (Math.round(x) || 0).toLocaleString("en-US");   // || 0 so float noise never prints "-$0"
   const money2 = x => "$" + x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
   const pct = x => (x*100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:3}) + "%";
-  // axis ticks; exact dollars are in the readout rows
+  // axis ticks and phone-width table cells; exact dollars are in the readout rows
   const compact = new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:1});
   const moneyK = x => "$" + compact.format(Math.round(x));
 
@@ -707,10 +745,11 @@
 
   // Color is fixed per component, never derived from size or the holding period. Borrowing
   // costs share the card's accent as a one-hue ramp; principal and the balance owed are
-  // neutral. The steps are validated as a set — re-step them together.
+  // neutral. The steps are validated as a set — re-step them together. kTerm names the
+  // component with no holding period; labels must keep matching a glossary entry.
   const SEGS = [
-    {k:"Interest paid",     c:"var(--accent)"},
-    {k:"PMI",               c:"color-mix(in srgb,var(--accent) 83%,var(--card))"},
+    {k:"Interest paid",     kTerm:"Total interest", c:"var(--accent)"},
+    {k:"PMI",               kTerm:"Total PMI",      c:"color-mix(in srgb,var(--accent) 83%,var(--card))"},
     {k:"Upfront fees",      c:"color-mix(in srgb,var(--accent) 67%,var(--card))"},
     {k:"Remaining balance", c:"var(--seg-remaining)"},
     {k:"Principal",         c:"var(--seg-principal)"},
@@ -720,16 +759,6 @@
   const segAmounts = (res, h) => h
     ? [h.interestPaid, h.pmiPaid, res.fees, h.bal, res.P - h.bal]
     : [res.totalInterest, res.totalPMI, res.fees, 0, res.P];
-
-  // Color key and exact figures for one offer.
-  function breakdownHTML(res, h){
-    const amts = segAmounts(res, h);
-    if(!(amts.reduce((a,b) => a+b, 0) > 0)) return "";
-    return `<div class="breakdown">` + amts.map((amt, j) => !(amt > 0) ? "" :
-        `<div class="row"><span class="k">`
-      + `<span class="sw" style="background:${SEGS[j].c}"></span>${SEGS[j].k}</span>`
-      + `<span class="v">${money(amt)}</span></div>`).join("") + `</div>`;
-  }
 
   function render(res, hData){
     if(!res) return "<div class='row'><span class='k'>Enter valid inputs</span></div>";
@@ -757,7 +786,7 @@
       html += rowHTML("Remaining balance", money(hData.bal));
       html += rowHTML("Cost to walk away (incl. fees + PMI)", money(hData.costToClear), true);
     }
-    return html + breakdownHTML(res, hData);
+    return html;
   }
   function rowHTML(k,v,total){
     return `<div class="row${total?' total':''}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
@@ -830,9 +859,14 @@
       const h = (res && useHorizon) ? horizon(res, hYears) : null;
       $("out"+i).innerHTML = render(res, h);
       annotate($("out"+i));
+      $("sum"+i).innerHTML = !res ? "<small>Enter valid inputs</small>"
+        : `<span>${money2(res.M + res.pmiFirst)}<small> per period${res.pmiApplies ? " incl. PMI" : ""}</small></span>`
+        + (h ? `<span>${money(h.costToClear)}<small> to walk away</small></span>`
+             : `<span>${money(res.totalCost)}<small> to term</small></span>`);
       if(res){ costs.push({i, cost: useHorizon ? h.costToClear : res.totalCost}); items.push({i, res}); }
     }
     drawBars(items, useHorizon, hYears);
+    annotate($("costTable"));
     drawChart(items, useHorizon, hYears);
     verdict(costs, useHorizon, hYears);
   }
@@ -840,8 +874,15 @@
   // ── cost breakdown bars ──────────────────────────────────────────────────────
   // One bar per offer on a shared baseline and scale: a longer bar is a bigger number, and
   // segment boundaries line up down the column. Rows differ in accent; segment order does not.
+  // The table reuses rows[], so bar, cell, and card agree.
   function drawBars(items, useHorizon, hYears){
-    const host = $("bars");
+    const host = $("bars"), table = $("costTable");
+    const label = s => useHorizon ? s.k : (s.kTerm || s.k);
+    $("barsHead").textContent = useHorizon ? "Cost to walk away" : "Cost to term";
+    // "Cost to term" would match the Term entry, so the to-term hint looks up Total cost
+    const def = defFor(useHorizon ? "cost to walk away" : "total cost");
+    $("barsHint").textContent = def.charAt(0).toLowerCase() + def.slice(1);
+    table.innerHTML = "";
     const blank = `<p class="chart-empty">Enter valid offer terms to see what each one is made of.</p>`;
     if(!items.length){ host.innerHTML = blank; return; }
 
@@ -866,12 +907,28 @@
         if(!(amt > 0)) return;
         const w = amt/max*span;
         g += `<rect x="${(GUT+at).toFixed(1)}" y="${y}" width="${Math.max(0, w-GAP).toFixed(1)}" height="${BAR}"`
-           + ` fill="${SEGS[j].c}"><title>${SEGS[j].k}: ${money(amt)}</title></rect>`;
+           + ` fill="${SEGS[j].c}"><title>${label(SEGS[j])}: ${money(amt)}</title></rect>`;
         at += w;
       });
       g += `</g><text class="bar-t num" x="${W}" y="${y+BAR/2+4}" text-anchor="end">${money(r.total)}</text>`;
     });
     host.innerHTML = `<svg width="${W}" height="${rows.length*ROW}" viewBox="0 0 ${W} ${rows.length*ROW}">${g}</svg>`;
+
+    // A row drops only when no offer has it, keeping columns aligned. Phone widths
+    // abbreviate cells, never the total.
+    const cell = matchMedia("(max-width:640px)").matches ? moneyK : money;
+    let t = `<table><thead><tr><th></th>`
+      + rows.map(r => `<th style="color:${accentOf(r.o.i)}">${LETTERS[r.o.i]}</th>`).join("")
+      + `</tr></thead><tbody>`;
+    SEGS.forEach((s, j) => {
+      if(rows.every(r => !(r.amts[j] > 0))) return;
+      t += `<tr><th class="k" scope="row"><div><span class="sw" style="background:${s.c}"></span>${label(s)}</div></th>`
+         + rows.map(r => `<td>${cell(r.amts[j])}</td>`).join("") + `</tr>`;
+    });
+    t += `<tr class="total"><th class="k" scope="row">`
+       + (useHorizon ? "Cost to walk away (incl. fees + PMI)" : "Total cost (to term, incl. fees + PMI)")
+       + `</th>` + rows.map(r => `<td>${money(r.total)}</td>`).join("") + `</tr></tbody></table>`;
+    table.innerHTML = t;
   }
 
   // ── cost-over-time chart ─────────────────────────────────────────────────────
@@ -1205,7 +1262,7 @@
     }
 
     // every rendered label and readout row resolves to a definition
-    const undef = [...document.querySelectorAll(".field label, .row .k")]
+    const undef = [...document.querySelectorAll(".field label, .row .k, #costTable .k")]
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
 
@@ -1306,7 +1363,33 @@
     ok(/>B</.test($("verdictText").innerHTML), "25yr verdict: " + $("verdictText").textContent);
     ok($("chart").querySelectorAll("svg .ser").length === 2, "chart did not draw both series");
     ok($("chart").querySelectorAll(".hz").length === 1, "no holding-period marker");
-    ok($("out0").querySelector(".breakdown .sw"), "no color key in the readout");
+    // the comparison table is the page's one color key, and its totals are the card's
+    const ct = $("costTable"), ctLabels = () => [...ct.querySelectorAll("tbody .k")].map(k => k.textContent);
+    ok(ct.querySelector(".sw"), "no color key in the comparison table");
+    ok(!document.querySelector(".offer .sw"), "an offer card still carries a color key");
+    ok(ct.querySelectorAll("thead th").length === 3, "expected a label column and 2 value columns");
+    const walkAway = [...$("out0").querySelectorAll(".row.total .v")].pop().textContent;
+    ok(ct.querySelector(".total td").textContent === walkAway,
+       "table total " + ct.querySelector(".total td").textContent + " vs card " + walkAway);
+    ok(!ctLabels().includes("PMI"), "PMI row shown with no PMI in any offer");   // no offer owes PMI at this LTV
+    ok(ctLabels().includes("Remaining balance"), "no remaining balance row at a holding period");
+    ok($("barsHead").textContent === "Cost to walk away", "heading " + $("barsHead").textContent);
+    $("horizon").value = ""; compute();
+    ok($("barsHead").textContent === "Cost to term", "heading " + $("barsHead").textContent);
+    ok(/^what the loan costs to full term/.test($("barsHint").textContent), "to-term hint: " + $("barsHint").textContent);
+    ok(!ctLabels().includes("Remaining balance"), "remaining balance row at term");
+    ok(ctLabels().includes("Total interest") && ctLabels().at(-1).startsWith("Total cost"),
+       "to-term labels: " + ctLabels().join(" | "));
+    ok(ct.querySelector(".total td").textContent === [...$("out0").querySelectorAll(".row.total .v")].pop().textContent,
+       "to-term table total does not match the card");
+    ok([...ct.querySelectorAll(".k")].every(k => k.title), "table label with no definition, to term");
+    $("horizon").value = "25"; compute();
+    ok([...ct.querySelectorAll(".k")].every(k => k.title), "table label with no definition, walk away");
+    if(pop.showPopover){
+      ct.querySelector(".total .k").click();
+      ok(pop.matches(":popover-open") && /leave at the end/.test(pop.textContent), "table label tap: " + pop.textContent);
+      pop.hidePopover();
+    }
 
     // one bar per offer on one scale: cheaper is shorter
     ok($("bars").querySelectorAll("clipPath").length === 2, "expected 2 bars");
@@ -1331,8 +1414,10 @@
     // an offer that cannot compute is skipped; all failing is an empty state
     $("term0").value = "0"; compute();
     ok($("chart").querySelectorAll("svg .ser").length === 1, "invalid offer not skipped");
+    ok(ct.querySelectorAll("thead th").length === 2, "invalid offer kept a table column");
     $("term1").value = "0"; compute();
     ok($("chart").querySelector(".chart-empty"), "no empty state when nothing computes");
+    ok($("costTable").innerHTML === "", "comparison table left behind when nothing computes");
 
     $("offerCount").value = "1";
     $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";

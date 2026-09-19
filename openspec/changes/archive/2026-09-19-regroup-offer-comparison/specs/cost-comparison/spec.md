@@ -43,7 +43,9 @@ SHALL be omitted when its amount is zero for every displayed offer, so columns s
 
 ### Requirement: Section follows the holding-period input
 
-Heading, total row label, and table figures SHALL follow the shared holding-period input.
+Heading, section hint, total row label, and table figures SHALL follow the shared holding-period
+input. The section hint SHALL define the headline figure, taking its text from the glossary entry
+for that figure, so no second copy of the definition exists.
 
 With a holding period entered, the heading SHALL read "Cost to walk away", the total row SHALL read
 "Cost to walk away (incl. fees + PMI)", and component rows SHALL show interest paid, PMI paid,
@@ -57,6 +59,7 @@ upfront fees, and principal — remaining balance being zero at term.
 
 - **WHEN** the holding period is set to 8 years
 - **THEN** the section heading reads "Cost to walk away"
+- **AND** the section hint gives the glossary definition of cost to walk away
 - **AND** the total row label reads "Cost to walk away (incl. fees + PMI)"
 - **AND** the remaining balance row is present
 
@@ -64,6 +67,7 @@ upfront fees, and principal — remaining balance being zero at term.
 
 - **WHEN** the holding-period field is cleared
 - **THEN** the section heading reads "Cost to term"
+- **AND** the section hint gives the glossary definition of total cost
 - **AND** the total row label reads "Total cost (to term, incl. fees + PMI)"
 - **AND** the remaining balance row is not rendered
 
@@ -96,8 +100,7 @@ table SHALL be the page's only color key for the bars. No per-offer key SHALL be
 the offer cards.
 
 Bar segment shading SHALL stay consistent across offers — same component, same ramp position —
-with each bar tinted in its own offer's accent. The section SHALL state this, so one swatch column
-is not read as claiming one offer's exact colors.
+with each bar tinted in its own offer's accent. The key column SHALL render in Offer A's accent.
 
 #### Scenario: Key present once
 

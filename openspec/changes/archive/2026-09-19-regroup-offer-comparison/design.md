@@ -86,12 +86,18 @@ stay one tap away in card readouts and bar hover text, so no figure leaves the p
 abbreviation does not. Keeps page free of horizontal scrollbar, which `page-layout` requires at
 every width.
 
-### Color key uses offer A's ramp, caveat stated
+### Color key uses offer A's ramp
 
 Bar segments are tinted per offer: `SEGS` colors express against `var(--accent)`, each bar row sets
 it to its own accent. One shared key cannot match 4 bars, so key column renders with offer A's
-accent and the hint states the rule — same component, same ramp position, every bar; each bar
-carries its offer's color.
+accent. Same component, same ramp position in every bar, so the mapping is self-evident; no caveat
+text.
+
+### Section hint defines the figure
+
+Hint under the heading gives the glossary definition of the headline figure — cost to walk away,
+or total cost at term — read through `defFor()` and set in `drawBars()` with the heading. "Cost to
+term" would match the Term entry, so the to-term lookup uses "total cost".
 
 Rejected: neutral gray ramp. Matches no bar, and gray reads as a sixth component.
 
@@ -113,8 +119,8 @@ count 1 untouched.
   view unchanged, summary always carries payment and headline total.
 - Abbreviated cells read as the tool's precision → total row exact, exact component figures stay in
   card readouts and bar hover text at every width.
-- One key cannot match 4 tinted bars → hint states the rule. Component order and ramp position are
-  identical in every bar, which is what the key encodes.
+- One key cannot match 4 tinted bars → component order and ramp position are identical in every
+  bar, which is what the key encodes; the per-offer tint reads as self-evident.
 - Card and table print the same numbers → accepted deliberately, both read `segAmounts()`, cannot
   drift.
 - Self-test asserts `.breakdown .sw`, which this change deletes → assertion replaced in same
