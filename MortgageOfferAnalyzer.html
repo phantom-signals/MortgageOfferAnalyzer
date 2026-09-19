@@ -83,6 +83,7 @@
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
     padding:clamp(16px,4vw,48px);
+    container-type:inline-size;   /* .offers breaks on its own width, not the viewport's */
   }
   header{margin-bottom:28px}
   h1{
@@ -112,8 +113,13 @@
   /* opacity:1 overrides the WebKit/Blink default wash-out, which is illegible on the dark card */
   .inp:disabled{background:var(--line);color:var(--slate);cursor:not-allowed;opacity:1}
 
-  /* offers grid — tracks wrap on their own; min() keeps the floor from overflowing a narrow phone */
-  .offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:18px}
+  /* offers grid — tracks wrap on their own; min() keeps the floor from overflowing a narrow phone.
+     start: each card keeps its own height, so a folded card does not stretch. */
+  .offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:18px;align-items:start}
+  /* auto-fit fits 3 tracks here, stranding a 4th card; bounds are 3 and 4 minimum-width tracks plus gaps */
+  @container (816px <= width < 1094px){
+    .offers:has(> .offer:nth-child(4)){grid-template-columns:repeat(2,1fr)}
+  }
   .offer{
     min-width:0;
     background:var(--card);border:1px solid var(--line);border-radius:12px;
