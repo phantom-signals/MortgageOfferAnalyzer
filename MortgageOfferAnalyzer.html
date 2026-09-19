@@ -153,9 +153,8 @@
 
   /* results */
   .readout{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-  /* fold: summary keeps payment and headline total visible while closed */
-  .fold{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
-  .fold .readout{margin-top:10px}
+  /* fold: wraps inputs and readout; summary keeps payment visible while closed */
+  .fold[open] summary{margin-bottom:12px}
   .fold summary{
     display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;cursor:pointer;list-style:none;
     font-family:var(--mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;
@@ -403,29 +402,29 @@
           <button type="button" class="step step-plus" data-step="1" aria-label="Add an offer"></button>
         </span>
       </h2>
-      <div class="field">
-        <label for="rate0">Annual interest rate (%)</label>
-        <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.75" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="term0">Term (years)</label>
-        <input class="inp" id="term0" type="number" min="1" step="1" value="30" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="freq0">Payments per year</label>
-        <input class="inp" id="freq0" type="number" min="1" step="1" value="12" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="fees0">Upfront fees + points ($)</label>
-        <input class="inp" id="fees0" type="number" min="0" step="100" value="1500" inputmode="decimal">
-      </div>
-      <div class="field">
-        <label for="pmi0">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
-        <input class="inp" id="pmi0" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
-      </div>
-      <!-- Outside #out0, so re-renders keep the open state. -->
+      <!-- Heading stays outside, so steppers work while folded; the fold sits outside #out0, so re-renders keep the open state. -->
       <details class="fold">
         <summary id="sum0"></summary>
+        <div class="field">
+          <label for="rate0">Annual interest rate (%)</label>
+          <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.75" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="term0">Term (years)</label>
+          <input class="inp" id="term0" type="number" min="1" step="1" value="30" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="freq0">Payments per year</label>
+          <input class="inp" id="freq0" type="number" min="1" step="1" value="12" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="fees0">Upfront fees + points ($)</label>
+          <input class="inp" id="fees0" type="number" min="0" step="100" value="1500" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="pmi0">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
+          <input class="inp" id="pmi0" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
+        </div>
         <div class="readout" id="out0"></div>
       </details>
     </div>
@@ -584,7 +583,7 @@
   $("favicon").href = "data:image/svg+xml," + encodeURIComponent($("mark").outerHTML);
   const LETTERS = ["A","B","C","D"];
   const offers = document.querySelector(".offers");
-  // Readouts open where cards sit side by side, folded where they stack; clones inherit it.
+  // Inputs and readouts open where cards sit side by side, folded where they stack; clones inherit it.
   // ponytail: decided once at load, rotation does not re-decide; set it in the resize handler if needed.
   offers.querySelector(".fold").open = !matchMedia("(max-width:640px)").matches;
   // Captured before any edit or compute, so clones carry the default value
@@ -867,9 +866,7 @@
       $("out"+i).innerHTML = render(res, h);
       annotate($("out"+i));
       $("sum"+i).innerHTML = !res ? "<small>Enter valid inputs</small>"
-        : `<span>${money2(res.M + res.pmiFirst)}<small> per period${res.pmiApplies ? " incl. PMI" : ""}</small></span>`
-        + (h ? `<span>${money(h.costToClear)}<small> to walk away</small></span>`
-             : `<span>${money(res.totalCost)}<small> to term</small></span>`);
+        : `<span>${money2(res.M + res.pmiFirst)}<small> per period${res.pmiApplies ? " incl. PMI" : ""}</small></span>`;
       if(res){ costs.push({i, cost: useHorizon ? h.costToClear : res.totalCost}); items.push({i, res}); }
     }
     drawBars(items, useHorizon, hYears);
