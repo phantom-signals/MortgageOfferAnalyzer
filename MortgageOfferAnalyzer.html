@@ -589,6 +589,8 @@
   $("favicon").href = "data:image/svg+xml," + encodeURIComponent($("mark").outerHTML);
   const LETTERS = ["A","B","C","D"];
   const offers = document.querySelector(".offers");
+  // Folding, width, and readout rows all change a card's size; margins do not, so no feedback loop.
+  const stacker = new ResizeObserver(() => stackCards());
   // Inputs and readouts open where cards sit side by side, folded where they stack; clones inherit it.
   // ponytail: decided once at load, rotation does not re-decide; set it in the resize handler if needed.
   offers.querySelector(".fold").open = !matchMedia("(max-width:640px)").matches;
@@ -820,9 +822,26 @@
     $("offerCount").value = n;   // the menu mirrors the count, whatever set it
     while(offers.children.length < n) offers.insertAdjacentHTML("beforeend", cardHTML(offers.children.length));
     while(offers.children.length > n) offers.lastElementChild.remove();
+    for(const c of offers.children) stacker.observe(c);
     $("verdict").hidden = n === 1;
     annotate(document);          // labels on any card just cloned in
     compute();
+    stackCards();                // a removal can leave every remaining card the same size
+  }
+
+  // Each card sits one row gap under the card above it in its column, not under the row's
+  // tallest card. Grid placement keeps DOM order, so no card ever changes column.
+  function stackCards(){
+    const cs = [...offers.children];
+    cs.forEach(c => c.style.marginTop = "");
+    const s = getComputedStyle(offers);
+    const cols = s.gridTemplateColumns.split(" ").filter(t => parseFloat(t) > 0).length;   // auto-fit reports collapsed tracks as 0px
+    const gap = parseFloat(s.rowGap);
+    cs.forEach((c, i) => {
+      if(i < cols) return;
+      const above = cs[i - cols];
+      c.style.marginTop = (above.offsetTop + above.offsetHeight + gap - c.offsetTop) + "px";
+    });
   }
 
   // A locked input keeps its real value in the stash, so the stash is what moves.
@@ -1428,6 +1447,18 @@
     $("term1").value = "0"; compute();
     ok($("chart").querySelector(".chart-empty"), "no empty state when nothing computes");
     ok($("costTable").innerHTML === "", "comparison table left behind when nothing computes");
+
+    // a card under a folded one sits one row gap below it, in the same column
+    renderOffers(4);
+    offers.style.gridTemplateColumns = "repeat(2,1fr)";
+    offers.children[0].querySelector(".fold").open = false;
+    offers.children[1].querySelector(".fold").open = true;
+    stackCards();
+    const [cardA,,cardC] = offers.children, rowGap = parseFloat(getComputedStyle(offers).rowGap);
+    ok(Math.abs(cardC.offsetTop - (cardA.offsetTop + cardA.offsetHeight + rowGap)) <= 1,
+       "C not stacked under folded A: " + cardC.offsetTop + " vs " + (cardA.offsetTop + cardA.offsetHeight + rowGap));
+    ok(cardC.offsetLeft === cardA.offsetLeft, "C changed column");
+    offers.style.gridTemplateColumns = "";
 
     $("offerCount").value = "1";
     $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";

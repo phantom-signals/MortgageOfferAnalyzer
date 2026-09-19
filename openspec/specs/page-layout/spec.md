@@ -35,7 +35,9 @@ With 4 offers, the grid SHALL render 4 columns, 2 columns, or 1 column, and SHAL
 columns. With 1 to 3 offers, the grid SHALL render as many columns as fit, up to the offer count.
 
 Each card SHALL take its own content height. A card SHALL NOT stretch to match a taller card in
-the same row.
+the same row. When cards span more than one row, each card below the first row SHALL sit one grid
+gap below the card above it in the same column, regardless of the height of other cards in that
+row. Cards SHALL keep their column; only their vertical position changes.
 
 #### Scenario: Offers widen with the window
 - **WHEN** the window is widened on a desktop viewport
@@ -66,8 +68,19 @@ the same row.
 - **THEN** the folded card is only as tall as its heading and summary
 - **AND** the expanded card keeps its full height
 
+#### Scenario: Card slides up under a folded card
+- **WHEN** the offer count is 4 in a 2-column layout and Offer A is folded while Offer B is expanded
+- **THEN** Offer C sits one grid gap below Offer A, in the left column
+- **AND** Offer D sits one grid gap below Offer B, in the right column
+- **AND** content below the offers grid starts below the taller column and overlaps neither
+
+#### Scenario: Unfolding restores position
+- **WHEN** Offer A is expanded again
+- **THEN** Offer C moves down to sit one grid gap below Offer A
+- **AND** no card changes column
+
 #### Scenario: Open cards still line up
-- **WHEN** every card in a row is expanded
+- **WHEN** every card in a row, and every card above them, is expanded
 - **THEN** readout rows line up across the cards in that row
 
 #### Scenario: Result rows stay legible when widened
