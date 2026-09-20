@@ -88,7 +88,9 @@ The glossary and hover text SHALL be presentation only. No input, control, calcu
 
 ### Requirement: Tapping a readout row label shows its definition
 
-Readout row labels that carry a definition SHALL open that definition on click or tap. The shared card's initial LTV readout SHALL open its definition the same way, so touch readers keep tap-to-define for LTV after the per-offer row is removed. The definition SHALL be shown in a single shared element using the native HTML Popover API, so it renders in the top layer, dismisses on outside click, and dismisses on Escape without custom code.
+Readout row labels that carry a definition SHALL open that definition on click or tap. The shared card's initial LTV readout SHALL open its definition the same way, so touch readers keep tap-to-define for LTV after the per-offer row is removed. The definition SHALL be shown in a single shared element using the native HTML Popover API, so it renders in the top layer.
+
+An open popover SHALL close on a click or tap anywhere on the page: outside it, on the popover itself, and on the label that opened it. A click on a different label carrying a definition SHALL replace the text rather than close. Escape SHALL still close an open popover. The popover SHALL carry no visible close control, and its appearance SHALL be unchanged.
 
 The popover SHALL work on every offer card, including cards added after load, and SHALL survive the re-render that follows any input change. The shared readout SHALL keep its definition through every re-render of its value.
 
@@ -133,6 +135,31 @@ The popover SHALL work on every offer card, including cards added after load, an
 - **WHEN** a popover is open
 - **AND** the reader taps outside it
 - **THEN** the popover closes
+
+#### Scenario: Dismiss by tapping the popover
+
+- **WHEN** a popover is open
+- **AND** the reader taps the popover text itself
+- **THEN** the popover closes
+
+#### Scenario: Dismiss by tapping the label that opened it
+
+- **WHEN** a popover is open for a row label
+- **AND** the reader taps that same row label again
+- **THEN** the popover closes
+- **AND** it does not reopen
+
+#### Scenario: Dismiss with Escape
+
+- **WHEN** a popover is open
+- **AND** the reader presses Escape
+- **THEN** the popover closes
+
+#### Scenario: Popover shows no close control
+
+- **WHEN** a popover is open
+- **THEN** it renders the definition text only
+- **AND** no close button, icon, or dismissal instruction is added
 
 #### Scenario: Row label with no definition
 

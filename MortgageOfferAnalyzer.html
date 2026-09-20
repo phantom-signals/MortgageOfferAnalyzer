@@ -600,7 +600,7 @@
   </footer>
 
 <!-- filled by the definition tap handler -->
-<div id="defPop" popover></div>
+<div id="defPop" popover="manual"></div>
 
 <script>
 (function(){
@@ -707,13 +707,17 @@
   // re-render on every edit. Input labels excluded: a label click already focuses its input.
   const defPop = $("defPop");
   if(defPop.showPopover){
+    // Manual: auto light-dismisses on the pointer press, leaving a re-tap on the opening label
+    // indistinguishable from a first open. The hide covers any click; only a different label reopens.
     document.addEventListener("click", e => {
       const el = e.target.closest(".row .k, #costTable .k, .shared .readout");
-      if(!el || !el.title) return;
+      const same = el && defPop.matches(":popover-open") && defPop.textContent === el.title;
+      defPop.hidePopover();
+      if(!el || !el.title || same) return;
       defPop.textContent = el.title;
-      defPop.hidePopover();     // reopen so a second label replaces an open popover
       defPop.showPopover();
     });
+    addEventListener("keydown", e => { if(e.key === "Escape") defPop.hidePopover(); });   // manual gets no native close request
     addEventListener("scroll", () => defPop.hidePopover(), {passive:true});
   }
 
@@ -1386,11 +1390,21 @@
       ok(pop.textContent === ltvRead.title, "popover text is not the readout definition: " + pop.textContent);
       const ltvRow = [...$("out0").querySelectorAll(".row .k")].find(k => k.textContent === "Effective annual rate");
       ltvRow.click();
-      ok(pop.popover === "auto", "popover is not auto, so outside-tap and Escape dismiss are lost");
+      ok(pop.popover === "manual", "popover is not manual, so light dismiss will eat the re-tap close");
       ok(pop.matches(":popover-open"), "row tap did not open the definition popover");
       ok(pop.textContent === ltvRow.title, "popover text is not the row's definition: " + pop.textContent);
       const dds = [...document.querySelectorAll("#glossary dd")].map(dd => dd.textContent.trim());
       ok(dds.includes(pop.textContent), "popover text is not a glossary definition");
+      pop.click();
+      ok(!pop.matches(":popover-open"), "tapping the popover did not dismiss it");
+      ltvRow.click();
+      ltvRow.click();
+      ok(!pop.matches(":popover-open"), "re-tapping the opening label did not dismiss the popover");
+      ltvRow.click();
+      ltvRead.click();
+      ok(pop.matches(":popover-open") && pop.textContent === ltvRead.title, "a different label did not replace the text");
+      dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}));
+      ok(!pop.matches(":popover-open"), "Escape did not dismiss the popover");
       ltvRow.click();
       dispatchEvent(new Event("scroll"));
       ok(!pop.matches(":popover-open"), "scroll did not dismiss the popover");
