@@ -359,6 +359,10 @@
     <!-- Left group: loan terms. A new loan-term field goes inside this div, not as a .shared child. -->
     <div class="shared-col">
     <div class="field">
+      <label for="homeValue">Home value at purchase <span class="hint">&mdash; lower of sale price or appraisal; drives PMI</span></label>
+      <input class="inp" id="homeValue" type="number" min="0" step="1000" value="450000" inputmode="decimal">
+    </div>
+    <div class="field">
       <label for="amount">Loan amount (principal)</label>
       <input class="inp" id="amount" type="number" min="0" step="1000" value="400000" inputmode="decimal">
     </div>
@@ -369,10 +373,6 @@
     </div>
     <!-- Right group: PMI drivers. A new PMI-driving field goes inside this div, not as a .shared child. -->
     <div class="shared-col">
-    <div class="field">
-      <label for="homeValue">Home value at purchase <span class="hint">&mdash; lower of sale price or appraisal; drives PMI</span></label>
-      <input class="inp" id="homeValue" type="number" min="0" step="1000" value="450000" inputmode="decimal">
-    </div>
     <div class="field">
       <label for="pmiThresh">PMI removal rule</label>
       <select class="inp" id="pmiThresh" title="When PMI stops. Under the federal Homeowners Protection Act: at 80% loan-to-value you may request cancellation in writing; at 78% the servicer must terminate it automatically. Both are measured against the home's original value and require current payments.">
