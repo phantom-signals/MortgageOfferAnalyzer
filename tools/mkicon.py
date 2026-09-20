@@ -1,4 +1,4 @@
-"""Trace the page's #mark SVG into favicon.png, the bookmark and home-screen icon.
+"""Trace the page's #mark SVG into the raster bookmark and home-screen icon.
 Mobile browsers fetch icons over the network and ignore data: URIs, so the mark needs
 a real file beside the page. The SVG stays the definition; this copy is synced by hand."""
 import io
