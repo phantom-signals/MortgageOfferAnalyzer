@@ -489,7 +489,7 @@
          (first match wins), so "Initial LTV" must precede "LTV" and "Total cost" must precede
          "Term". Entries with no data-match are glossary-only — they appear in the prose above. -->
     <dl class="glossary" id="glossary">
-      <dt data-match="offers">Offer</dt>
+      <dt>Offer</dt>
       <dd>One lender&rsquo;s quoted loan terms &mdash; rate, term, fees, and mortgage insurance &mdash; for the same loan amount, so you can compare competing quotes side by side.</dd>
 
       <dt data-match="loan amount|principal">Principal (loan amount)</dt>
@@ -519,7 +519,7 @@
       <dt data-match="pmi annual rate">PMI annual rate</dt>
       <dd>The yearly mortgage insurance premium as a percentage of the balance it is charged on; divide by payments per year for the amount added to each payment.</dd>
 
-      <dt data-match="payment, p&amp;i|payments made">Payment, P&amp;I (principal and interest)</dt>
+      <dt data-match="payment, p&amp;i|payment incl|payments made">Payment, P&amp;I (principal and interest)</dt>
       <dd>The scheduled payment covering interest owed plus principal repaid; it excludes mortgage insurance, property taxes, homeowners insurance, and escrow.</dd>
 
       <dt data-match="effective annual rate">EAR (effective annual rate)</dt>
@@ -528,13 +528,13 @@
       <dt data-match="initial ltv">Initial LTV</dt>
       <dd>The loan-to-value ratio at closing: loan amount divided by home value at purchase; above 80% the lender requires mortgage insurance.</dd>
 
-      <dt data-match="ltv|loan-to-value">LTV (loan-to-value)</dt>
+      <dt>LTV (loan-to-value)</dt>
       <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and triggers removal of mortgage insurance.</dd>
 
       <dt data-match="total interest">Total interest</dt>
       <dd>Every dollar of interest paid across the full amortization schedule: all payments made minus the principal borrowed.</dd>
 
-      <dt data-match="interest paid">Interest paid</dt>
+      <dt data-match="interest paid|interest">Interest paid</dt>
       <dd>Interest paid through the holding period only &mdash; payments made so far minus the principal actually retired in that span.</dd>
 
       <dt data-match="pmi ends">PMI ends</dt>
@@ -630,8 +630,10 @@
   // out of the hash and out of restore().
   const INPUTS = "input.inp, select.inp";
 
+  // getVal/setVal, not .value: a locked PMI field displays 0 and keeps the entered rate in
+  // its stash, so the stash is what a link must carry in both directions.
   const serialize = () => new URLSearchParams(
-    [...document.querySelectorAll(INPUTS)].map(el => [el.id, el.value])).toString();
+    [...document.querySelectorAll(INPUTS)].map(el => [el.id, getVal(el)])).toString();
 
   // A hash can be crafted by anyone, so it is untrusted input: a key is applied only
   // when it names an existing control, values go through .value and never markup, and
@@ -642,7 +644,7 @@
     const apply = () => {
       for(const [k,v] of params){
         const el = $(k);
-        if(el && el.matches(INPUTS)) el.value = v;
+        if(el && el.matches(INPUTS)) setVal(el, v);
       }
     };
     // Shared fields first: renderOffers() computes, and compute() locks or unlocks the
@@ -777,7 +779,7 @@
   // neutral. The steps are validated as a set — re-step them together. kTerm names the
   // component with no holding period; labels must keep matching a glossary entry.
   const SEGS = [
-    {k:"Interest paid",     kTerm:"Total interest", c:"var(--accent)"},
+    {k:"Interest",          kTerm:"Total interest", c:"var(--accent)"},
     {k:"PMI",               kTerm:"Total PMI",      c:"color-mix(in srgb,var(--accent) 83%,var(--card))"},
     {k:"Upfront fees",      c:"color-mix(in srgb,var(--accent) 67%,var(--card))"},
     {k:"Remaining balance", c:"var(--seg-remaining)"},
@@ -906,12 +908,16 @@
     const items = [];   // same offers, with calc()'s result kept for the graphics
     for(let i=0; i<offers.children.length; i++){
       const pmiEl = $("pmi"+i);                 // locked before its value is read, so the
-      if(!pmiRequired && !pmiEl.disabled){      // readout below can never disagree with it
-        pmiEl.dataset.prev = pmiEl.value;       // stash survives the lock, restored on unlock
+      if(!pmiRequired){                         // readout below can never disagree with it
+        if(!pmiEl.disabled){
+          pmiEl.dataset.prev = pmiEl.value;     // stash survives the lock, restored on unlock
+          pmiEl.disabled = true;
+          pmiEl.title = "PMI does not apply when the loan starts at or below 80% LTV, so the rate is fixed at 0.";
+        }
+        // Re-zeroed on every pass, not just the locking one: restore() can write a hash
+        // value onto an already-locked field, and the readout must never contradict it.
         pmiEl.value = "0";
-        pmiEl.disabled = true;
-        pmiEl.title = "PMI does not apply when the loan starts at or below 80% LTV, so the rate is fixed at 0.";
-      } else if(pmiRequired && pmiEl.disabled){
+      } else if(pmiEl.disabled){
         pmiEl.value = pmiEl.dataset.prev ?? pmiEl.value;
         pmiEl.disabled = false;
         pmiEl.removeAttribute("title");
@@ -1319,6 +1325,23 @@
        "per-card stash lost: " + [0,1,2].map(i => $("pmi"+i).value).join(","));
     ok($("pmi3").value === "0.55", "cloned card default not restored: " + $("pmi3").value);
 
+    // A locked field displays 0 no matter what writes to it, and a link carries the stash
+    // rather than that 0, so the rate survives a round trip made while PMI was locked.
+    renderOffers(1);
+    setShared("400000","450000");                          // above 80%: editable
+    $("pmi0").value = "0.62";
+    setShared("300000","450000");                          // below 80%: locked, 0.62 stashed
+    const lockedLink = serialize();
+    ok(new URLSearchParams(lockedLink).get("pmi0") === "0.62",
+       "link carried the displayed 0, not the stash: " + new URLSearchParams(lockedLink).get("pmi0"));
+    restore("amount=300000&homeValue=450000&pmi0=0.62");   // hash writes onto a locked field
+    ok($("pmi0").disabled === true, "pmi0 unlocked by a restore below 80% LTV");
+    ok($("pmi0").value === "0", "locked field shows a restored rate: " + $("pmi0").value);
+    ok($("ltvOut").textContent.endsWith("no PMI required"), "readout: " + $("ltvOut").textContent);
+    setShared("400000","450000");                          // unlock: the stash comes back
+    ok($("pmi0").value === "0.62", "restored rate lost behind the lock: " + $("pmi0").value);
+    renderOffers(4);                                       // the checks below read pmi1
+
     // hover definitions reach cloned labels and freshly rendered readout rows
     ok(document.querySelector('label[for="pmi1"]').title.length > 0, "no tooltip on cloned PMI label");
     $("horizon").value = "5"; compute();                   // renders the holding-period rows too
@@ -1368,6 +1391,15 @@
     const undef = [...document.querySelectorAll(".field label, .row .k, #costTable .k")]
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
+
+    // ...and to the RIGHT one: first-match-wins let labels fall through to a general entry.
+    // "Payment incl. PMI" once resolved to PMI, which the row above it already defines.
+    ok(/scheduled payment covering interest/.test(defFor("Payment incl. PMI (first period)")),
+       "payment row resolved to: " + defFor("Payment incl. PMI (first period)").slice(0,60));
+    ok(/payments made so far/.test(defFor("Interest")),
+       "bare table label 'Interest' resolved to: " + defFor("Interest").slice(0,60));
+    ok(defFor("Total interest (to term)") !== defFor("Interest"),
+       "to-term interest row collapsed onto the holding-period definition");
 
     // removing a card shifts later offers down
     renderOffers(3);
