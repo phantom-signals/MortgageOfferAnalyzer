@@ -486,8 +486,8 @@
     <!-- Definitions live here only. The script derives every hover tooltip from this list, so
          editing a <dd> changes the tooltip too. data-match holds the "|"-separated snippets that
          identify the term inside a rendered label; entries are ordered SPECIFIC BEFORE GENERAL
-         (first match wins), so "Initial LTV" must precede "LTV" and "Total cost" must precede
-         "Term". Entries with no data-match are glossary-only — they appear in the prose above. -->
+         (first match wins), so "Total interest" must precede "Interest paid" and "Total cost"
+         must precede "Term". Entries with no data-match are glossary-only. -->
     <dl class="glossary" id="glossary">
       <dt>Offer</dt>
       <dd>One lender&rsquo;s quoted loan terms &mdash; rate, term, fees, and mortgage insurance &mdash; for the same loan amount, so you can compare competing quotes side by side.</dd>
@@ -630,8 +630,8 @@
   // out of the hash and out of restore().
   const INPUTS = "input.inp, select.inp";
 
-  // getVal/setVal, not .value: a locked PMI field displays 0 and keeps the entered rate in
-  // its stash, so the stash is what a link must carry in both directions.
+  // A locked PMI field displays 0 and holds the entered rate in its stash, so the stash is
+  // what a link carries in both directions.
   const serialize = () => new URLSearchParams(
     [...document.querySelectorAll(INPUTS)].map(el => [el.id, getVal(el)])).toString();
 
@@ -914,8 +914,8 @@
           pmiEl.disabled = true;
           pmiEl.title = "PMI does not apply when the loan starts at or below 80% LTV, so the rate is fixed at 0.";
         }
-        // Re-zeroed on every pass, not just the locking one: restore() can write a hash
-        // value onto an already-locked field, and the readout must never contradict it.
+        // Re-zeroed every pass: restore() can write a hash value onto an already-locked
+        // field, and the readout must never contradict it.
         pmiEl.value = "0";
       } else if(pmiEl.disabled){
         pmiEl.value = pmiEl.dataset.prev ?? pmiEl.value;
@@ -1325,12 +1325,12 @@
        "per-card stash lost: " + [0,1,2].map(i => $("pmi"+i).value).join(","));
     ok($("pmi3").value === "0.55", "cloned card default not restored: " + $("pmi3").value);
 
-    // A locked field displays 0 no matter what writes to it, and a link carries the stash
-    // rather than that 0, so the rate survives a round trip made while PMI was locked.
+    // A locked field displays 0 whatever writes to it; a link carries the stash, so the
+    // rate survives a round trip made while PMI was locked.
     renderOffers(1);
     setShared("400000","450000");                          // above 80%: editable
     $("pmi0").value = "0.62";
-    setShared("300000","450000");                          // below 80%: locked, 0.62 stashed
+    setShared("300000","450000");                          // below 80%: locks, stashing the rate
     const lockedLink = serialize();
     ok(new URLSearchParams(lockedLink).get("pmi0") === "0.62",
        "link carried the displayed 0, not the stash: " + new URLSearchParams(lockedLink).get("pmi0"));
@@ -1392,8 +1392,7 @@
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
 
-    // ...and to the RIGHT one: first-match-wins let labels fall through to a general entry.
-    // "Payment incl. PMI" once resolved to PMI, which the row above it already defines.
+    // ...and to the right one: first-match-wins lets a label fall through to a general entry.
     ok(/scheduled payment covering interest/.test(defFor("Payment incl. PMI (first period)")),
        "payment row resolved to: " + defFor("Payment incl. PMI (first period)").slice(0,60));
     ok(/payments made so far/.test(defFor("Interest")),

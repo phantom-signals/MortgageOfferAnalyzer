@@ -33,6 +33,10 @@ Each offer card's PMI annual rate input SHALL be set to 0 and disabled whenever 
 ### Requirement: A locked value is preserved and restored
 Locking SHALL stash the value the user had entered. Unlocking SHALL restore that stashed value, per offer card, so the lock never destroys typed input.
 
+While a field is locked the tool SHALL re-assert the displayed `0` on every computation, not only on the pass that locked it, so a value written to the field from some other source — a restored link above all — can never leave it displaying a rate the readout beside it denies.
+
+The displayed value of a locked field is therefore not authoritative; the stash is. Anything that reads a PMI rate out of the page, or writes one into it, SHALL go through the stash while the field is locked. `share-link` states how this applies to the URL hash.
+
 #### Scenario: Value returns after unlock
 - **WHEN** Offer A's PMI rate is 0.72, then the loan amount is lowered so LTV falls to 75%, then raised again so LTV returns to 88.9%
 - **THEN** Offer A's PMI rate reads 0.72 again
@@ -41,6 +45,12 @@ Locking SHALL stash the value the user had entered. Unlocking SHALL restore that
 #### Scenario: Per-card stash
 - **WHEN** the offer count is 3 with PMI rates 0.55, 0.72, and 0.40, and the inputs are locked and then unlocked
 - **THEN** each card restores its own value: 0.55, 0.72, and 0.40 respectively
+
+#### Scenario: A restore cannot un-zero a locked field
+- **WHEN** a hash assigning a nonzero PMI rate is restored while the shared inputs give LTV at or below 80%
+- **THEN** the field still displays 0 and stays locked
+- **AND** the readout still states that no PMI is required
+- **AND** raising the loan above 80% LTV shows the restored rate
 
 #### Scenario: No stash on first load in locked state
 - **WHEN** the file is opened with shared inputs that give LTV at or below 80% and the PMI input is never enabled

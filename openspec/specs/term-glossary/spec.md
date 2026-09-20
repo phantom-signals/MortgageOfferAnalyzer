@@ -8,6 +8,8 @@ The tool SHALL render a glossary at the bottom of the page listing each jargon t
 
 The glossary SHALL cover at minimum: PMI, LTV, principal, effective annual rate, term, payments per year, upfront fees and points, amortization, amortization midpoint, holding period, home value at purchase (original value), PMI removal rule, PMI premium basis, HPA, total interest, total cost, remaining balance, cost to walk away, payment (P&I), escrow, MIP.
 
+An entry SHALL carry label-match tokens only where the tool prints a label that should resolve to it. An entry that exists to explain a term the page uses in its prose rather than in a label — LTV on its own, "offer", HPA, escrow, MIP — SHALL carry none, so it cannot capture a label meant for a more specific entry. A token-free entry is not an orphan.
+
 #### Scenario: Glossary present on load
 - **WHEN** the file is opened in a browser
 - **THEN** a glossary section is rendered at the bottom of the page, below the existing method and PMI footer paragraphs
@@ -31,6 +33,8 @@ Input labels, readout row labels, and the shared card's initial LTV readout SHAL
 
 The LTV definition SHALL reach the reader from the shared readout, since no offer readout row carries that term any more.
 
+A readout row that is a section divider rather than a figure — "Through holding period" — resolves like any other row label and MAY therefore carry a definition. This is correct where the entry it resolves to names the divider's own subject, and SHALL NOT be suppressed with an exclusion list.
+
 #### Scenario: Hover the shared LTV readout
 - **WHEN** the pointer rests over the initial LTV readout in the shared card
 - **THEN** the browser shows the initial LTV definition as hover text
@@ -53,8 +57,14 @@ The LTV definition SHALL reach the reader from the shared readout, since no offe
 - **THEN** the existing detailed hover text on those controls still appears, unchanged
 
 #### Scenario: Specific term still beats the general one
-- **WHEN** the shared readout's definition is resolved from its label text
-- **THEN** it resolves to the "Initial LTV" entry, not the general "LTV (loan-to-value)" entry
+- **WHEN** a label is resolved whose text also contains a more general term, such as "Total interest (to term)"
+- **THEN** it resolves to the "Total interest" entry, not to the "Interest paid" entry that also matches on "interest"
+- **AND** the shared readout resolves to "Initial LTV"
+
+#### Scenario: A prose-only entry cannot capture a label
+- **WHEN** a label containing "LTV" is resolved
+- **THEN** it never resolves to the general "LTV (loan-to-value)" entry, which carries no match tokens
+- **AND** that entry is still rendered in the glossary
 
 ### Requirement: Definitions have a single source
 Glossary text and hover text SHALL be derived from one definition source in the file. Editing a definition once SHALL change both the glossary entry and every hover tooltip for that term.

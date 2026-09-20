@@ -51,13 +51,18 @@ Heading, section hint, total row label, and table figures SHALL follow the share
 input. The section hint SHALL define the headline figure, taking its text from the glossary entry
 for that figure, so no second copy of the definition exists.
 
+Component row labels SHALL be bare nouns naming the component. The row sits under a heading that
+already names the period, so the card readout's "... paid" phrasing would repeat it once per row;
+the table and the card therefore label the same figure differently by design.
+
 With a holding period entered, the heading SHALL read "Cost to walk away", the total row SHALL read
-"Cost to walk away (incl. fees + PMI)", and component rows SHALL show interest paid, PMI paid,
-upfront fees, remaining balance, and principal repaid through that period.
+"Cost to walk away (incl. fees + PMI)", and component rows SHALL read "Interest", "PMI", "Upfront
+fees", "Remaining balance", and "Principal", each measured through that period.
 
 With the holding period blank, the heading SHALL read "Cost to term", the total row SHALL read
-"Total cost (to term, incl. fees + PMI)", and component rows SHALL show total interest, total PMI,
-upfront fees, and principal — remaining balance being zero at term.
+"Total cost (to term, incl. fees + PMI)", and component rows SHALL read "Total interest", "Total
+PMI", "Upfront fees", and "Principal" — remaining balance being zero at term. Only the two rows
+that would otherwise be ambiguous across the two modes take a distinct to-term label.
 
 #### Scenario: Holding period entered
 
@@ -65,6 +70,7 @@ upfront fees, and principal — remaining balance being zero at term.
 - **THEN** the section heading reads "Cost to walk away"
 - **AND** the section hint gives the glossary definition of cost to walk away
 - **AND** the total row label reads "Cost to walk away (incl. fees + PMI)"
+- **AND** the interest row is labelled "Interest", not "Interest paid"
 - **AND** the remaining balance row is present
 
 #### Scenario: Holding period cleared
@@ -73,6 +79,7 @@ upfront fees, and principal — remaining balance being zero at term.
 - **THEN** the section heading reads "Cost to term"
 - **AND** the section hint gives the glossary definition of total cost
 - **AND** the total row label reads "Total cost (to term, incl. fees + PMI)"
+- **AND** the interest row is labelled "Total interest"
 - **AND** the remaining balance row is not rendered
 
 ### Requirement: Table totals agree with the bars and the card readouts
@@ -90,7 +97,8 @@ it or the readout row inside the card.
 #### Scenario: Table agrees with the card
 
 - **WHEN** a holding period is set and Offer A's card readout is compared with Offer A's column
-- **THEN** interest paid, PMI paid, and remaining balance match between the two
+- **THEN** the interest, PMI, and remaining balance amounts match between the two, though the card
+  and the table label them differently
 
 #### Scenario: Table agrees with the bar
 
@@ -100,8 +108,9 @@ it or the readout row inside the card.
 ### Requirement: Table carries the bars' color key
 
 Each component row label SHALL carry a color swatch matching that component's bar segment. This
-table SHALL be the page's only color key for the bars. No per-offer key SHALL be rendered inside
-the offer cards.
+table SHALL be the page's only key for the bar segments. No per-offer key SHALL be rendered inside
+the offer cards. The cost-over-time chart's legend keys offers to their accents, not components to
+their segments, and SHALL NOT count against this.
 
 Bar segment shading SHALL stay consistent across offers — same component, same ramp position —
 with each bar tinted in its own offer's accent. The key column SHALL render in Offer A's accent.
@@ -109,8 +118,9 @@ with each bar tinted in its own offer's accent. The key column SHALL render in O
 #### Scenario: Key present once
 
 - **WHEN** four offers are displayed
-- **THEN** exactly one color key is rendered on the page
+- **THEN** exactly one key for the bar segments is rendered on the page
 - **AND** it is the comparison table's label column
+- **AND** the chart legend is the page's only other color key, and it names offers, not components
 
 #### Scenario: Card carries no key
 
@@ -119,8 +129,9 @@ with each bar tinted in its own offer's accent. The key column SHALL render in O
 
 ### Requirement: Four offers fit a 390px viewport
 
-At 640px and below, component amounts SHALL be abbreviated to thousands (for example `$252.5k`), so
-four offer columns plus the label column fit a 390px viewport without horizontal scrolling. The
+At 640px and below, component amounts SHALL be abbreviated in compact notation to one decimal —
+`$252.5K`, and `$1.3M` once an amount reaches a million — so four offer columns plus the label
+column fit a 390px viewport without horizontal scrolling. The
 total row SHALL keep exact dollars at every width.
 
 Where the table is still wider than its container, it SHALL scroll horizontally inside that

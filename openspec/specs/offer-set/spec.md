@@ -3,7 +3,7 @@
 ## Purpose
 How many mortgage offers the tool holds at once: how the count is chosen, how cards are added and removed, how entered values survive a count change, how the verdict behaves at each count, and what stays shared across every offer.
 ## Requirements
-### Requirement: Offer count is user-selectable
+### Requirement: Offer count is set by per-card steppers
 The tool SHALL provide add and remove controls in each offer card's heading that set how many offers
 are displayed. The controls SHALL hold the count within the integer range 1 to 4. No offer-count
 control SHALL appear in the shared-inputs card.
@@ -97,6 +97,8 @@ shifted one position earlier.
 ### Requirement: Verdict ranks every displayed offer
 With two or more offers, the verdict SHALL name the cheapest offer on the active comparison basis and SHALL state the gap between it and the next-cheapest offer. When two or more offers tie for cheapest, the verdict SHALL name every tied offer by its letter instead of stating a gap.
 
+Offers SHALL count as tied when the gap between them is strictly under half a dollar. The window exists because float noise, not a real difference, is what separates two offers costing the same to the cent; a gap of exactly half a dollar is a real difference and SHALL NOT be treated as a tie.
+
 #### Scenario: Three offers, distinct costs
 - **WHEN** the offer count is 3 and the three offers have distinct total costs
 - **THEN** the verdict names the cheapest offer
@@ -104,23 +106,23 @@ With two or more offers, the verdict SHALL name the cheapest offer on the active
 - **AND** the cheapest offer's own total cost is shown alongside the difference
 
 #### Scenario: Two offers tie for cheapest
-- **WHEN** two offers tie for the lowest cost within half a dollar
+- **WHEN** two offers' costs differ by less than half a dollar
 - **THEN** the verdict names both offers by letter, joined by "and"
 - **AND** states that they cost the same
 - **AND** shows that shared cost as the amount
 
 #### Scenario: Three or more offers tie for cheapest
-- **WHEN** three or more offers tie for the lowest cost within half a dollar
+- **WHEN** three or more offers' costs differ from the lowest by less than half a dollar
 - **THEN** the verdict names every tied offer by letter, comma-separated with "and" before the last
 - **AND** shows the shared cost as the amount
 
 #### Scenario: Tie among cheapest with a costlier offer present
-- **WHEN** the offer count is 3, two offers tie for the lowest cost within half a dollar, and the third costs more
+- **WHEN** the offer count is 3, two offers' costs differ by less than half a dollar, and the third costs more
 - **THEN** the verdict names only the two tied offers
 - **AND** the costlier offer is not named
 
 #### Scenario: Near-tie is not a tie
-- **WHEN** the cheapest and second-cheapest offers differ by more than half a dollar
+- **WHEN** the cheapest and second-cheapest offers differ by exactly half a dollar or more
 - **THEN** the verdict names one cheapest offer and states the gap, as it does for distinct costs
 
 #### Scenario: One offer has invalid inputs

@@ -92,9 +92,9 @@ row. Cards SHALL keep their column; only their vertical position changes.
 
 On viewports wider than 640px the shared-input card SHALL render two columns of stacked fields. The left column SHALL hold home value, loan amount, then holding period, in that order. The right column SHALL hold PMI removal rule, PMI premium basis, then the initial LTV readout, in that order, so every control that sets a PMI rule sits in one column beside the ratio those rules are measured against. No PMI control SHALL share a row with another shared input.
 
-Each column SHALL hold three items, so neither column ends in empty card space.
+Each column SHALL hold three items, so neither column ends in a field-sized run of empty card space.
 
-Columns SHALL each keep their own height. A shorter column SHALL NOT stretch its fields to match the taller column.
+The two columns are grid tracks of the same height. A shorter column SHALL NOT stretch its fields to fill that height; it SHALL leave the difference as empty space below its last field rather than distributing it between them.
 
 #### Scenario: Desktop shared card
 
@@ -143,7 +143,7 @@ No width-based media query SHALL set input font size or input padding.
 
 - **WHEN** the shared card is rendered on a mouse-driven desktop
 - **THEN** input text renders at 14px, matching the header subtitle and the fold summary
-- **AND** input text renders larger than the 13px readout rows and no larger than any heading
+- **AND** input text renders no smaller than the readout rows — 13px above 640px, 14px at or below it — and no larger than any heading
 
 ### Requirement: Mobile stacking is preserved
 At viewport widths of 640px and below, the existing single-column layout SHALL continue to apply unchanged, for any offer count. The shared-input card SHALL stack its items in document order: home value, loan amount, holding period, PMI removal rule, PMI premium basis, initial LTV readout. Column grouping SHALL NOT change that order.
@@ -195,7 +195,9 @@ Each card's inputs and readout SHALL sit together inside one disclosure control.
 (disclosure chevron, dot, offer name, add/remove steppers) SHALL be the disclosure control's summary,
 so the whole heading row toggles the fold and stays visible and operable while the card is collapsed.
 At 640px and below the disclosure SHALL start collapsed. Above 640px it SHALL start expanded, so
-cards stay directly comparable across columns on desktop.
+cards stay directly comparable across columns on desktop. This default SHALL be decided once, at
+load, from the width then in effect, and cards added later SHALL inherit it; a later resize or
+rotation SHALL NOT re-fold or re-open a card, since by then the fold state may be the reader's.
 
 The heading SHALL show a chevron, left of the color dot, in that card's accent color, which points
 one way while collapsed and the other while expanded. The chevron SHALL be visible in both states, so
@@ -203,8 +205,10 @@ the fold is discoverable on desktop where cards start expanded.
 
 The summary SHALL show exactly one figure for that offer: payment including PMI for the first
 period. When the offer's inputs are invalid, the summary SHALL show the invalid-input message in
-place of the figure. The figure SHALL keep its own type treatment when the card is expanded; the
-heading SHALL NOT change size, weight, or color between states.
+place of the figure. The figure SHALL change type treatment between states: prominent while
+collapsed, where it is the only figure the card shows, and reduced to a quiet secondary line while
+expanded, where the readout below repeats the same number. The heading itself — chevron, dot, offer
+name, steppers — SHALL NOT change size, weight, or color between states.
 
 Pressing an add or remove stepper SHALL NOT toggle the fold, by pointer or by keyboard.
 
@@ -236,6 +240,11 @@ choice SHALL survive the re-render that follows any input edit.
 - **WHEN** a card is expanded and then collapsed
 - **THEN** the offer name renders at the same size, weight, and color in both states
 - **AND** only the summary figure changes its type treatment
+
+#### Scenario: Resize does not re-decide the fold
+- **WHEN** the tool is loaded at 1280px wide and the window is then dragged below 640px
+- **THEN** the cards stay expanded
+- **AND** a card added after the resize is expanded too, matching the others
 
 #### Scenario: Open state survives an edit
 
@@ -274,9 +283,10 @@ choice SHALL survive the re-render that follows any input edit.
 
 ### Requirement: Verdict bar colors follow color scheme
 
-In the light color scheme the verdict bar SHALL use the card background, ink text color, and a
-card-style border, so the offer letters it prints sit on the background their light-scheme accents
-were chosen for. In the dark color scheme the verdict bar SHALL keep its current dark background
+In the light color scheme the verdict bar SHALL use the card background and ink text color, so the
+offer letters it prints sit on the background their light-scheme accents were chosen for. Its border
+SHALL be the stronger of the page's two border tones, so the bar still reads as a banner rather than
+as one more card. In the dark color scheme the verdict bar SHALL keep its current dark background
 and light text. The chart tooltip and definition popover SHALL keep their current colors in both
 schemes.
 
@@ -284,6 +294,7 @@ schemes.
 
 - **WHEN** the tool is opened with two offers in the light color scheme
 - **THEN** the verdict bar background matches the offer card background
+- **AND** its border is the stronger border tone, not the lighter one the cards use
 - **AND** the verdict text uses the ink color
 - **AND** the winning offer letter renders in that offer's light-scheme accent color
 
