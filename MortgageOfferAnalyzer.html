@@ -873,13 +873,15 @@
   const setVal = (el, v) => { el.disabled ? el.dataset.prev = v : el.value = v; };
   const fieldsOf = card => [...card.querySelectorAll(".inp")];
 
-  // renderOffers() only adds at the tail, so the clone is appended, read back for its default
-  // values, then shifted into place along with the rows it displaces.
+  // The new card is a copy of the one the control sits in: rows is captured before the
+  // render, so rows[i] is the source card's state, and a locked PMI field copies its stash
+  // rather than the 0 it displays. renderOffers() only adds at the tail, so the appended
+  // card is shifted into place along with the rows it displaces.
   function insertOffer(i){
     if(offers.children.length >= LETTERS.length) return;
     const rows = [...offers.children].map(c => fieldsOf(c).map(getVal));
     renderOffers(rows.length + 1);
-    rows.splice(i + 1, 0, fieldsOf(offers.lastElementChild).map(getVal));
+    rows.splice(i + 1, 0, rows[i].slice());
     rows.forEach((row, c) => fieldsOf(offers.children[c]).forEach((el, j) => setVal(el, row[j])));
     compute();
   }
@@ -1422,12 +1424,18 @@
     // a stepper press must not toggle the disclosure it sits in
     ok(offers.children[0].querySelector(".fold").open === foldBefore, "stepper toggled the fold");
 
-    // plus inserts directly after the card it sits in, shifting the offers below it down
+    // plus inserts a copy of the card it sits in, shifting the offers below it down
+    const FIELDS = ["rate","term","freq","fees","pmi"];
+    const cardVals = i => FIELDS.map(f => getVal($(f+i)));
     renderOffers(3);
-    $("rate0").value = "6.1"; $("rate1").value = "5.9"; $("rate2").value = "6.4"; compute();
+    $("rate0").value = "6.1"; $("rate1").value = "5.9"; $("rate2").value = "6.4";
+    // every field set away from its default, so a copy cannot pass by landing on one
+    $("term0").value = "15"; $("freq0").value = "26"; $("fees0").value = "4100"; $("pmi0").value = "0.63";
+    compute();
     offers.children[0].querySelector(".step-plus").click();
     ok(offers.children.length === 4, "insert left " + offers.children.length + " cards");
-    ok($("rate1").value === "6.75", "inserted card not at defaults: " + $("rate1").value);
+    ok(cardVals(1).join(",") === "6.1,15,26,4100,0.63",
+       "inserted card did not copy card 0: " + cardVals(1).join(","));
     ok($("rate0").value === "6.1" && $("rate2").value === "5.9" && $("rate3").value === "6.4",
        "insert did not shift: " + [0,1,2,3].map(i => $("rate"+i).value).join(","));
     const plusShown = () => [...offers.children]
@@ -1447,6 +1455,18 @@
     ok($("pmi0").value === "0", "locked PMI showing a stashed rate: " + $("pmi0").value);
     $("homeValue").value = "450000"; compute();
     ok($("pmi0").value === "0.41", "stash not restored on unlock: " + $("pmi0").value);
+
+    // a card inserted while PMI is locked copies the source card's stash, not the 0 it displays
+    renderOffers(2);
+    $("homeValue").value = "900000"; compute();
+    $("pmi0").dataset.prev = "0.47";
+    offers.children[0].querySelector(".step-plus").click();
+    ok($("pmi1").disabled === true && $("pmi1").value === "0", "inserted card not locked");
+    ok($("pmi1").dataset.prev === "0.47",
+       "inserted card copied the displayed 0, not the stash: " + $("pmi1").dataset.prev);
+    $("homeValue").value = "450000"; compute();
+    ok($("pmi0").value === "0.47" && $("pmi1").value === "0.47",
+       "source rate missing after unlock: " + $("pmi0").value + "," + $("pmi1").value);
 
     // share link survives a full round trip through a string, values and results alike
     const snapshot = () => [...document.querySelectorAll(INPUTS)].map(el => el.id + "=" + el.value).join(",");
