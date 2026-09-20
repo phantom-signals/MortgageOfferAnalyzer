@@ -25,4 +25,4 @@
 - [x] 4.2 In a loaded page, confirm `document.getElementById("favicon").getAttribute("href")` is the static path in the raw source and `document.getElementById("favicon").href` after load is the `data:image/svg+xml,` URI
 - [x] 4.3 Confirm no Content Security Policy violation in the console on load, hosted and from `file://`
 - [x] 4.4 Open a saved `file://` copy; confirm the tab icon still shows the mark and no visible error appears
-- [ ] 4.5 After deploy, confirm `/favicon.png`, `/apple-touch-icon.png`, `/apple-touch-icon-precomposed.png` each return 200
+- [x] 4.5 After deploy, confirm `/favicon.png`, `/apple-touch-icon.png`, `/apple-touch-icon-precomposed.png` each return 200
