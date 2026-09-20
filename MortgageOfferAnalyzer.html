@@ -134,6 +134,12 @@
     margin:0 0 14px;color:var(--accent);font-weight:700;
     display:flex;align-items:center;gap:8px;
   }
+  /* chevron carries the card's accent, and shows in both states */
+  .offer h2::before{
+    content:"";width:6px;height:6px;
+    border:solid var(--accent);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);transition:transform .15s;
+  }
+  .fold[open] h2::before{transform:rotate(45deg)}
   .offer h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
   .offer h2 .steppers{margin-left:auto;display:flex;gap:6px}
   .offer h2 .step{
@@ -150,10 +156,9 @@
   .offer h2 .step-plus::after{width:2px;height:10px}
   .offer h2 .step:hover{border-color:var(--accent)}
   .offer h2 .step:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-  /* bounds: one offer keeps its card, the fourth ends the row, only the tail grows */
+  /* bounds: one offer keeps its card, four is the ceiling */
   .offer:only-child .step-minus{visibility:hidden}
-  .offer:not(:last-child) .step-plus{visibility:hidden}
-  .offer.d .step-plus{visibility:hidden}
+  .offers:has(> .offer:nth-child(4)) .step-plus{visibility:hidden}
   .offer .field{margin-bottom:12px}
   .offer .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
 
@@ -163,15 +168,11 @@
   .fold[open] summary{margin-bottom:12px}
   .fold summary{
     display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;cursor:pointer;list-style:none;
-    font-family:var(--mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;
   }
   .fold summary::-webkit-details-marker{display:none}
-  .fold summary::before{
-    content:"";align-self:center;width:6px;height:6px;margin-right:-4px;
-    border:solid var(--slate);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);transition:transform .15s;
-  }
-  .fold[open] summary::before{transform:rotate(45deg)}
-  .fold[open] summary{font-size:12px;font-weight:400;color:var(--slate)}
+  .fold summary h2{flex:0 0 100%}
+  .fold summary .sum{font-family:var(--mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+  .fold[open] summary .sum{font-size:12px;font-weight:400;color:var(--slate)}
   .fold summary small{font-family:var(--sans);font-size:12px;font-weight:400;color:var(--slate)}
   .fold summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
   .row{
@@ -353,15 +354,6 @@
 
   <div class="shared">
     <div class="field">
-      <label for="offerCount">Offers <span class="hint">&mdash; 1 analyzes a single offer; 2 or more compares them</span></label>
-      <select class="inp" id="offerCount">
-        <option value="1">1 offer</option>
-        <option value="2" selected>2 offers</option>
-        <option value="3">3 offers</option>
-        <option value="4">4 offers</option>
-      </select>
-    </div>
-    <div class="field">
       <label for="amount">Loan amount (principal)</label>
       <input class="inp" id="amount" type="number" min="0" step="1000" value="400000" inputmode="decimal">
     </div>
@@ -401,16 +393,19 @@
   <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
   <div class="offers">
     <div class="offer a">
-      <h2>
-        <span class="dot"></span><span class="name">Offer A</span>
-        <span class="steppers">
-          <button type="button" class="step step-minus" data-step="-1" aria-label="Remove this offer"></button>
-          <button type="button" class="step step-plus" data-step="1" aria-label="Add an offer"></button>
-        </span>
-      </h2>
-      <!-- Heading stays outside, so steppers work while folded; the fold sits outside #out0, so re-renders keep the open state. -->
+      <!-- The heading is the summary, so the whole row toggles the fold. The fold sits outside
+           the readout, so re-renders keep the open state. -->
       <details class="fold">
-        <summary id="sum0"></summary>
+        <summary>
+          <h2>
+            <span class="dot"></span><span class="name">Offer A</span>
+            <span class="steppers">
+              <button type="button" class="step step-minus" data-step="-1" aria-label="Remove this offer"></button>
+              <button type="button" class="step step-plus" data-step="1" aria-label="Add an offer after this one"></button>
+            </span>
+          </h2>
+          <span class="sum" id="sum0"></span>
+        </summary>
         <div class="field">
           <label for="rate0">Annual interest rate (%)</label>
           <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.75" inputmode="decimal">
@@ -599,16 +594,15 @@
   const card0HTML = offers.firstElementChild.outerHTML;
 
   // "input" fires on selects too, so it covers every control here.
-  document.addEventListener("input", e =>
-    e.target.id === "offerCount" ? renderOffers(+e.target.value) : compute());
+  document.addEventListener("input", compute);
 
   // One listener for every card, cloned ones included.
   offers.addEventListener("click", e => {
     const btn = e.target.closest("[data-step]");
     if(!btn) return;
-    +btn.dataset.step > 0
-      ? renderOffers(offers.children.length + 1)
-      : removeOffer([...offers.children].indexOf(btn.closest(".offer")));
+    e.preventDefault();   // the steppers sit in <summary>, and must not toggle it
+    const i = [...offers.children].indexOf(btn.closest(".offer"));
+    +btn.dataset.step > 0 ? insertOffer(i) : removeOffer(i);
   });
 
   // PMI is only required when the loan starts above 80% LTV. calc() and the UI lock
@@ -638,7 +632,11 @@
     // PMI inputs from the LTV, restoring each card's stashed value over anything set
     // before it. Applying again after the cards exist puts the encoded values back.
     apply();
-    renderOffers(+$("offerCount").value);   // per-offer ids do not exist until cards are cloned
+    // Per-offer ids do not exist until the cards are cloned, so the count comes from the
+    // highest rate<i> key the hash carries; renderOffers() clamps it. Every link the tool
+    // makes carries rate0, so a hash naming no offer leaves the cards it found alone.
+    const idx = [...params.keys()].map(k => /^rate(\d+)$/.exec(k)).filter(Boolean).map(m => +m[1] + 1);
+    renderOffers(Math.max(offers.children.length, ...idx));
     apply();
     compute();
   }
@@ -819,7 +817,6 @@
   // Add/remove only at the tail, so existing cards keep their entered values.
   function renderOffers(n){
     n = Math.min(LETTERS.length, Math.max(1, Math.round(n) || 1));
-    $("offerCount").value = n;   // the menu mirrors the count, whatever set it
     while(offers.children.length < n) offers.insertAdjacentHTML("beforeend", cardHTML(offers.children.length));
     while(offers.children.length > n) offers.lastElementChild.remove();
     for(const c of offers.children) stacker.observe(c);
@@ -848,6 +845,17 @@
   const getVal = el => el.disabled ? (el.dataset.prev ?? el.value) : el.value;
   const setVal = (el, v) => { el.disabled ? el.dataset.prev = v : el.value = v; };
   const fieldsOf = card => [...card.querySelectorAll(".inp")];
+
+  // renderOffers() only adds at the tail, so the clone is appended, read back for its default
+  // values, then shifted into place along with the rows it displaces.
+  function insertOffer(i){
+    if(offers.children.length >= LETTERS.length) return;
+    const rows = [...offers.children].map(c => fieldsOf(c).map(getVal));
+    renderOffers(rows.length + 1);
+    rows.splice(i + 1, 0, fieldsOf(offers.lastElementChild).map(getVal));
+    rows.forEach((row, c) => fieldsOf(offers.children[c]).forEach((el, j) => setVal(el, row[j])));
+    compute();
+  }
 
   // Cards are identical clones, so values move by position.
   function removeOffer(i){
@@ -1295,17 +1303,33 @@
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
 
-    // removing a card shifts later offers down, and the menu follows the buttons
+    // removing a card shifts later offers down
     renderOffers(3);
     $("rate0").value = "6.1"; $("rate1").value = "5.9"; $("rate2").value = "6.4"; compute();
+    const foldBefore = offers.children[0].querySelector(".fold").open;
     offers.children[0].querySelector(".step-minus").click();
     ok(offers.children.length === 2, "minus left " + offers.children.length + " cards");
-    ok($("offerCount").value === "2", "menu out of sync after minus: " + $("offerCount").value);
     ok($("rate0").value === "5.9" && $("rate1").value === "6.4",
        "values did not shift down: " + $("rate0").value + "," + $("rate1").value);
     offers.children[1].querySelector(".step-plus").click();
-    ok(offers.children.length === 3 && $("offerCount").value === "3",
-       "plus left " + offers.children.length + " cards, menu " + $("offerCount").value);
+    ok(offers.children.length === 3, "plus left " + offers.children.length + " cards");
+    // a stepper press must not toggle the disclosure it sits in
+    ok(offers.children[0].querySelector(".fold").open === foldBefore, "stepper toggled the fold");
+
+    // plus inserts directly after the card it sits in, shifting the offers below it down
+    renderOffers(3);
+    $("rate0").value = "6.1"; $("rate1").value = "5.9"; $("rate2").value = "6.4"; compute();
+    offers.children[0].querySelector(".step-plus").click();
+    ok(offers.children.length === 4, "insert left " + offers.children.length + " cards");
+    ok($("rate1").value === "6.75", "inserted card not at defaults: " + $("rate1").value);
+    ok($("rate0").value === "6.1" && $("rate2").value === "5.9" && $("rate3").value === "6.4",
+       "insert did not shift: " + [0,1,2,3].map(i => $("rate"+i).value).join(","));
+    const plusShown = () => [...offers.children]
+      .map(c => getComputedStyle(c.querySelector(".step-plus")).visibility);
+    ok(plusShown().every(v => v === "hidden"), "add control available at four offers: " + plusShown());
+    renderOffers(3);
+    ok(plusShown().every(v => v === "visible"), "add control hidden below four offers: " + plusShown());
+    $("rate0").value = "6.1"; $("rate1").value = "5.9"; $("rate2").value = "6.4"; compute();
 
     // a locked PMI field reads "0", so the shift has to move the stash instead
     $("homeValue").value = "900000"; compute();
@@ -1320,7 +1344,7 @@
 
     // share link survives a full round trip through a string, values and results alike
     const snapshot = () => [...document.querySelectorAll(INPUTS)].map(el => el.id + "=" + el.value).join(",");
-    $("offerCount").value = "3"; renderOffers(3);
+    renderOffers(3);
     $("amount").value="325000"; $("homeValue").value="400000"; $("horizon").value="7";
     $("pmiThresh").value="0.80"; $("pmiBasis").value="fixed";
     $("rate0").value="6.1"; $("term0").value="30"; $("freq0").value="12"; $("fees0").value="2500"; $("pmi0").value="0.51";
@@ -1330,7 +1354,7 @@
     const saved = serialize(), fieldsBefore = snapshot(), costBefore = $("out2").lastElementChild.textContent;
 
     // wreck every field, including the offer count and the LTV that drives the PMI lock
-    $("offerCount").value = "1"; renderOffers(1);
+    renderOffers(1);
     $("amount").value="100000"; $("homeValue").value="900000"; $("horizon").value="";
     $("pmiThresh").value="0.78"; $("pmiBasis").value="declining";
     $("rate0").value="1"; $("term0").value="10"; $("freq0").value="1"; $("fees0").value="9";
@@ -1353,6 +1377,16 @@
     ok($("verdictText").textContent !== "x" && $("glossary").value === undefined, "non-input id was written");
     ok($("out2").querySelector(".row"), "page stopped computing after a bad hash");
     ok(location.hash === hashBefore, "bad hash wrote location.hash");
+
+    // a stale offer-count key is ignored; the per-offer keys carry the count
+    restore(saved + "&offerCount=1");
+    ok(offers.children.length === 3, "stale offerCount key set the count: " + offers.children.length);
+    ok(snapshot() === fieldsBefore, "stale offerCount key changed values");
+
+    // a crafted hash with a gap renders through to the highest index it names
+    restore("rate3=4.25");
+    ok(offers.children.length === 4, "sparse key card count " + offers.children.length);
+    ok($("rate3").value === "4.25", "sparse key landed on " + $("rate3").value);
 
     // ── graphics ──────────────────────────────────────────────────────────────
     // segments add up to the total the rows print, to term and at a horizon
@@ -1460,11 +1494,10 @@
     ok(cardC.offsetLeft === cardA.offsetLeft, "C changed column");
     offers.style.gridTemplateColumns = "";
 
-    $("offerCount").value = "1";
     $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";
     $("pmiThresh").value = "0.78"; $("pmiBasis").value = "declining";
     offers.innerHTML = card0HTML;                 // undo the edits demo made
-    renderOffers(+$("offerCount").value);
+    restore(DEFAULT_STATE);                       // back to the post-boot state
     console.log("selftest passed");
     document.title = "selftest passed";           // readable from a headless --dump-dom run
   }

@@ -134,14 +134,21 @@ hidden state at an offer count of 1.
 ### Requirement: Card readouts fold on small viewports
 
 Each card's inputs and readout SHALL sit together inside one disclosure control. The card heading
-(dot, offer name, add/remove steppers) SHALL stay outside the disclosure control and SHALL remain
-visible and operable while the card is collapsed. At 640px and below the disclosure SHALL start
-collapsed. Above 640px it SHALL start expanded, so cards stay directly comparable across columns
-on desktop.
+(disclosure chevron, dot, offer name, add/remove steppers) SHALL be the disclosure control's summary,
+so the whole heading row toggles the fold and stays visible and operable while the card is collapsed.
+At 640px and below the disclosure SHALL start collapsed. Above 640px it SHALL start expanded, so
+cards stay directly comparable across columns on desktop.
+
+The heading SHALL show a chevron, left of the color dot, in that card's accent color, which points
+one way while collapsed and the other while expanded. The chevron SHALL be visible in both states, so
+the fold is discoverable on desktop where cards start expanded.
 
 The summary SHALL show exactly one figure for that offer: payment including PMI for the first
 period. When the offer's inputs are invalid, the summary SHALL show the invalid-input message in
-place of the figure.
+place of the figure. The figure SHALL keep its own type treatment when the card is expanded; the
+heading SHALL NOT change size, weight, or color between states.
+
+Pressing an add or remove stepper SHALL NOT toggle the fold, by pointer or by keyboard.
 
 Expanding or collapsing SHALL change no figure and no input value. The reader's open or closed
 choice SHALL survive the re-render that follows any input edit.
@@ -157,7 +164,20 @@ choice SHALL survive the re-render that follows any input edit.
 
 - **WHEN** the tool is opened at 1280px wide
 - **THEN** each offer card's inputs and readout are expanded
+- **AND** each heading shows its accent-colored chevron in the expanded orientation
 - **AND** the rows line up across the offer columns as before
+
+#### Scenario: Heading row toggles the fold
+
+- **WHEN** the reader activates an expanded card's heading, by pointer or by keyboard
+- **THEN** that card collapses to its heading and summary figure
+- **AND** activating the heading again expands it
+
+#### Scenario: Heading keeps its type in both states
+
+- **WHEN** a card is expanded and then collapsed
+- **THEN** the offer name renders at the same size, weight, and color in both states
+- **AND** only the summary figure changes its type treatment
 
 #### Scenario: Open state survives an edit
 
@@ -181,6 +201,12 @@ choice SHALL survive the re-render that follows any input edit.
 - **WHEN** Offer A is collapsed and the reader presses its add-offer stepper
 - **THEN** a new offer card is added
 - **AND** Offer A stays collapsed
+
+#### Scenario: Steppers do not toggle the fold
+
+- **WHEN** the reader presses an expanded card's remove or add stepper
+- **THEN** the count changes as specified
+- **AND** no card's fold state changes
 
 #### Scenario: Folding changes no figure
 
