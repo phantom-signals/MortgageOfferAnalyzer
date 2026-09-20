@@ -21,10 +21,19 @@ affordance on its own. It SHALL meet the same contrast against the card backgrou
 dark color schemes.
 
 Under a pointer that supports hover, hovering the heading row SHALL shift the chevron to the card's
-accent color, confirming the row is a control. The offer name already rests in that accent color and
-SHALL NOT change on hover. This hover styling SHALL apply only on devices whose primary pointer can
-hover, so a touch tap leaves no stuck hover state. Hover SHALL be additive: the chevron alone,
-without hover, remains the affordance for touch and keyboard readers.
+accent color and SHALL draw that card's full border in the same accent color, confirming the row is a
+control. The chevron's stroke is too fine to carry the signal alone, so the card border is what makes
+the hover visible at a glance. The hovered border SHALL be heavier than its resting weight and SHALL
+stay lighter than the card's accent top border, so the top border remains the card's identity mark
+and the hover reads as a passing state. Lighting it SHALL NOT shift the card's contents or its
+neighbours' positions. The offer name already rests in that accent color and SHALL NOT change
+on hover.
+
+Only the heading row SHALL trigger this. Hovering a card's inputs or readout SHALL NOT light the
+border, since those do not toggle the fold and SHALL NOT suggest they do. This hover styling SHALL
+apply only on devices whose primary pointer can hover, so a touch tap leaves no stuck hover state.
+Hover SHALL be additive: the chevron alone, without hover, remains the affordance for touch and
+keyboard readers.
 
 The summary SHALL show exactly one figure for that offer: payment including PMI for the first
 period. When the offer's inputs are invalid, the summary SHALL show the invalid-input message in
@@ -63,9 +72,18 @@ choice SHALL survive the re-render that follows any input edit.
 
 - **WHEN** the reader hovers an offer card's heading row with a pointer that supports hover
 - **THEN** that card's chevron shifts from the secondary text tone to the card's accent color
+- **AND** that card's full border is drawn in the same accent color, heavier than its resting weight
+- **AND** no input, readout row, or neighbouring card moves by any amount
 - **AND** the offer name stays in the accent color it already rests in
-- **AND** moving the pointer off the row returns the chevron to the secondary text tone
+- **AND** no other card's border changes
+- **AND** moving the pointer off the row returns the chevron and the border to their resting colors
 - **AND** no fold state changes
+
+#### Scenario: Hovering a card's body does not signal the fold
+
+- **WHEN** the reader hovers a card's rate input or its readout, away from the heading row
+- **THEN** that card's border stays in its resting color
+- **AND** that card's chevron stays in the secondary text tone
 
 #### Scenario: Hover styling is pointer-gated
 

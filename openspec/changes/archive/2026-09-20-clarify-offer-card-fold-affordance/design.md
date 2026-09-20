@@ -1,7 +1,7 @@
 ## Context
 
 Offer card heading is a `<summary>` holding `h2::before` (chevron), `span.dot`, `span.name`, and the
-stepper buttons. CSS at `MortgageOfferAnalyzer.html:143-149`, markup at `:418`.
+stepper buttons, all in `MortgageOfferAnalyzer.html`.
 
 Every glyph in that row is `var(--accent)`:
 
@@ -33,8 +33,8 @@ Single-file tool, no build step, no framework. Every change here is CSS plus del
 
 - Adding a text label ("Show details") or a bordered button around the chevron. Chevron plus hover
   carries it; a label adds weight to a row already holding two steppers.
-- Animating the fold open or closed. Chevron rotation transition already exists at `:146`.
-- Touching chart circles at `:1102-1190`. Separate mark, separate purpose.
+- Animating the fold open or closed. The chevron's rotation transition already exists.
+- Touching the chart's circle markers. Separate mark, separate purpose.
 - Changing accent hues, the fold's breakpoint default, or anything in the summary figure.
 
 ## Decisions
@@ -51,10 +51,10 @@ Alternative considered: keep both, separate them with the offer name between. Sp
 three zones on a card that already holds steppers at the right. Rejected on clutter.
 
 The dot's only argument was legend consistency with the chart. Weak: the cost table's key is a 10px
-rounded square (`.sw`, `:196`), chart markers are circles carrying letters, and the heading already
+rounded square (`.sw`), chart markers are circles carrying letters, and the heading already
 spells the offer name in words. Card heading matched neither key.
 
-### Chevron in `--slate`, with a built-in escape hatch
+### Chevron in `--slate`
 
 Resting chevron moves from `var(--accent)` to `var(--slate)`. Rationale: accent means "which offer
 this is"; the chevron means "what this row does". Painting a control in identity color is what let it
@@ -66,26 +66,61 @@ Contrast supports it. Light: `--slate` `#5d6670` on `--card` `#ffffff` is 5.83:1
 the 3:1 floor for a non-text graphical object either way, so this is headroom, not a fix.
 
 Counter-argument worth a look: the four accent chevrons give a row of cards a color rhythm that four
-gray ones lose, and the existing comment at `:143` says accent there was deliberate. Hence the
-evaluation step in tasks: build both, screenshot both schemes, decide, then lock. Reverting is one
-declaration; nothing else in the change reads the chevron's color.
+gray ones lose, and the comment this change replaces said accent there was deliberate. So both were
+built and screenshotted in both schemes before locking. Slate won. Accent turned out viable once the
+dot was gone — a chevron reads as directional where the dot read as decoration — but slate keeps the
+chevron's hover tell and carries more contrast. Reverting is still one declaration; nothing else in
+the change reads the chevron's color.
 
-### Hover is coupled to the chevron color choice
+### Hover tell follows from the chevron color
 
-Heading text already rests at accent (`:140`), so the hover tell has to be the chevron: slate at
-rest, accent under a hovering pointer. Reads as the row previewing its own identity color.
+Heading text already rests at accent, so the chevron is the only thing in the row that can move:
+slate at rest, accent under a hovering pointer. Reads as the row previewing its own identity color.
 
 ```
 rest    ▸(slate)  OFFER A(accent)
 hover   ▸(accent) OFFER A(accent)
 ```
 
-That tell only exists while the chevron rests at slate. If evaluation picks accent instead, hover
-needs a different signal — a faint accent tint across the summary row, which costs
-`margin-inline:-20px;padding-inline:20px` on the base rule to reach the card edges plus one hover
-background. Tasks carry this as a conditional branch, not as work to do up front.
+That tell only exists while the chevron rests at slate — resting it at accent would have left hover
+with nowhere to go and cost a separate signal, which is one more reason slate won.
+
+On its own the chevron turned out too fine to notice moving. The card-border decision below is what
+actually carries the hover; the chevron only confirms it.
 
 Gate the whole hover block in `@media (hover:hover)` so a tap on a phone leaves no stuck color.
+
+### Card border carries the hover, the chevron only confirms it
+
+An 8px chevron with a 2px stroke is a small target to notice moving. Hover also draws the whole
+card's border in the accent, which is a surface large enough to catch peripheral vision.
+
+Trigger is the heading row, not the card. `.offer:has(> .fold > summary:hover)` keeps the child
+combinators tight so only a card's own heading lights its own border. Hovering a rate input must not
+light the border, because clicking an input does not fold anything, and a border that responds to
+the whole card would promise a control the card does not have.
+
+Alternative considered: `.offer:hover`. One selector shorter, wrong signal.
+
+The card already sets `border:1px solid var(--line)` with `border-top:3px solid var(--accent)`, so a
+single `border-color` declaration lights all four sides. That alone leaves the sides at 1px, too thin
+to read as a change, so hover also lays an `inset 0 0 0 1px` ring inside the border box, doubling the
+sides to 2px.
+
+Weight was picked by rendering 1px, 2px and 3px rings and looking. 2px sides match the 3px top bar
+exactly and make the hovered card one unbroken outline, which turned out to be too much: the card
+reads as selected rather than passed over. 1px stays visibly under the top bar, so the top bar keeps
+its job as the identity mark and hover stays a transient state.
+
+The ring is a shadow, not a wider border: widening the border would reflow the card's contents and
+nudge its neighbours on every hover. Inset shadows paint inside the border box and cost no layout.
+The resting rule carries a second, zero-width transparent shadow so both states hold the same shadow
+count and the ring can animate rather than snap. `transition` covers border-color and box-shadow at
+the .15s the steppers already use.
+
+Alternative considered: `outline` with a negative offset. Equivalent result, but the file already
+uses `outline` for the summary's focus ring, and reusing it for hover would blur which state a ring
+means.
 
 ### Chevron 6px to 8px
 
@@ -95,14 +130,14 @@ it replaces, so the row's metrics barely move.
 
 ## Risks / Trade-offs
 
-- Slate chevron reads dull across four cards, flattening the color rhythm. Mitigation: the evaluation
-  step exists precisely to catch this before it ships; revert is one declaration.
+- Slate chevron reads dull across four cards, flattening the color rhythm. Checked by building both
+  and comparing in each scheme; slate held up. Revert is one declaration.
 - Removing the dot weakens identity at a glance on a narrow phone, where cards stack and the accent
-  top border is the main tell. Mitigation: check a 390px screenshot at 4 offers during evaluation.
-  Top border is 3px and full card width, a bigger accent surface than a 9px dot.
+  top border is the main tell. Checked at 390px with 4 offers: the top border is 3px and full card
+  width, a bigger accent surface than a 9px dot.
 - Hover-only feedback would strand touch and keyboard readers. Mitigation: hover is additive; chevron
   and the existing `:focus-visible` outline stay the real affordances, and a scenario pins that.
-- Clone path at `:832` rewrites `">Offer A<"` per card. Deleting a sibling span does not touch that
+- The clone path rewrites `">Offer A<"` per card. Deleting a sibling span does not touch that
   substring, and no JavaScript queries `.dot`. Low risk, verified by grep before editing.
 
 ## Migration Plan
