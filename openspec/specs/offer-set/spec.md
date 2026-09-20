@@ -2,7 +2,6 @@
 
 ## Purpose
 How many mortgage offers the tool holds at once: how the count is chosen, how cards are added and removed, how entered values survive a count change, how the verdict behaves at each count, and what stays shared across every offer.
-
 ## Requirements
 ### Requirement: Offer count is user-selectable
 The tool SHALL provide add and remove controls in each offer card's heading that set how many offers
@@ -50,7 +49,8 @@ With exactly one offer, the tool SHALL present itself as an analyzer of that off
 #### Scenario: Verdict hidden at count 1
 - **WHEN** the offer count is 1
 - **THEN** the verdict bar is not displayed
-- **AND** the single offer's readout still shows payment, effective annual rate, initial LTV, total interest, PMI figures, and total cost
+- **AND** the single offer's readout still shows payment, effective annual rate, total interest, PMI figures, and total cost
+- **AND** the initial LTV is not among them; it is shown once in the shared-input card
 
 #### Scenario: Holding period at count 1
 - **WHEN** the offer count is 1 and a holding period is entered
@@ -158,3 +158,4 @@ Loan amount, holding period, home value, PMI removal rule, and PMI premium basis
 #### Scenario: Single-offer results match today's Offer A
 - **WHEN** the offer count is 1 and the shared inputs and offer inputs are set to the values that Offer A shows today
 - **THEN** every value in the readout is identical to the value the current two-offer tool prints for Offer A
+

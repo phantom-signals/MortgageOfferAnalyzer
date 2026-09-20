@@ -104,6 +104,8 @@
   .shared-col{display:flex;flex-direction:column;gap:16px}
   .field{display:flex;flex-direction:column;gap:6px}
   .field label{font-size:12px;font-weight:600;color:var(--slate);letter-spacing:.02em}
+  .readout .lbl{font-size:12px;font-weight:600;color:var(--slate);letter-spacing:.02em}
+  .readout .val{font-family:var(--mono);font-size:14px;color:var(--ink);padding:9px 0}
   .hint{font-size:11px;color:var(--slate);font-weight:400}
   .inp{
     font-family:var(--mono);font-size:14px;color:var(--ink);
@@ -167,7 +169,8 @@
   .offer .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
 
   /* results */
-  .readout{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  /* .offer-scoped: the shared card's readout carries the same class and takes no divider. */
+  .offer .readout{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
   /* fold: wraps inputs and readout; summary keeps payment visible while closed */
   .fold[open] summary{margin-bottom:12px}
   .fold summary{
@@ -386,6 +389,11 @@
         <option value="declining" selected title="Premium = current scheduled balance x annual PMI rate / 12, so the dollar amount falls as the loan amortizes. Common convention.">Recalculated on declining balance</option>
         <option value="fixed" title="Premium = original loan amount x annual PMI rate / 12, a constant dollar amount until PMI ends. Used by some policies.">Fixed on original loan amount</option>
       </select>
+    </div>
+    <!-- A div, not an input: INPUTS must never sweep it into the share hash. -->
+    <div class="field readout">
+      <span class="lbl">Initial LTV</span>
+      <div class="val" id="ltvOut">&mdash;</div>
     </div>
     </div>
   </div>
@@ -677,7 +685,7 @@
   // use. Elements that carry hand-written title text are left alone.
   // ponytail: naive substring scan, ~25 entries x ~25 elements; index the tokens if it ever grows.
   function annotate(root){
-    root.querySelectorAll(".field label, .row .k, #costTable .k").forEach(el => {
+    root.querySelectorAll(".field label, .row .k, #costTable .k, .shared .readout").forEach(el => {
       if(el.title) return;
       const t = defFor(el.textContent);
       if(t) el.title = t;
@@ -689,7 +697,7 @@
   const defPop = $("defPop");
   if(defPop.showPopover){
     document.addEventListener("click", e => {
-      const el = e.target.closest(".row .k, #costTable .k");
+      const el = e.target.closest(".row .k, #costTable .k, .shared .readout");
       if(!el || !el.title) return;
       defPop.textContent = el.title;
       defPop.hidePopover();     // reopen so a second label replaces an open popover
@@ -790,7 +798,6 @@
       html += rowHTML("Payment incl. PMI (first period)", money2(res.M + res.pmiFirst));
     }
     html += rowHTML("Effective annual rate", pct(res.ear));
-    if(res.initialLTV!==null) html += rowHTML("Initial LTV", pct(res.initialLTV));
     html += rowHTML("Total interest (to term)", money(res.totalInterest));
     if(res.pmiApplies){
       html += rowHTML("PMI ends", "period " + res.pmiEndPeriod + " (yr " + (res.pmiEndPeriod/res.m).toFixed(1) + ")");
@@ -888,6 +895,12 @@
     // Mirrored into the UI so the input cannot hold a rate the math discards:
     // at or below 80% LTV the field reads 0 and is locked.
     const pmiRequired = pmiOwed(P, hv);
+
+    // Read from the shared inputs, not from any offer's result, so it holds when no offer
+    // computes. NaN > 0 is false, so blank and non-numeric fall to the em dash.
+    $("ltvOut").textContent = hv > 0 && P > 0
+      ? pct(P/hv) + " \u2014 " + (pmiRequired ? "PMI required" : "no PMI required")
+      : "\u2014";
 
     const costs = [];   // one entry per offer that computed; invalid offers are skipped
     const items = [];   // same offers, with calc()'s result kept for the graphics
@@ -1288,12 +1301,35 @@
     // hover definitions reach cloned labels and freshly rendered readout rows
     ok(document.querySelector('label[for="pmi1"]').title.length > 0, "no tooltip on cloned PMI label");
     $("horizon").value = "5"; compute();                   // renders the holding-period rows too
-    const ltvRow = [...$("out0").querySelectorAll(".row .k")].find(k => k.textContent === "Initial LTV");
-    ok(ltvRow && /loan-to-value/i.test(ltvRow.title), "Initial LTV row tooltip: " + (ltvRow && ltvRow.title));
 
-    // tap path: readout rows open the popover, input labels do not
+    // LTV prints once, in the shared card, and resolves to the specific glossary entry
+    const ltvRead = document.querySelector(".shared .readout"), ltvOut = $("ltvOut");
+    ok(/loan-to-value/i.test(ltvRead.title), "shared LTV readout tooltip: " + ltvRead.title);
+    ok(/at closing/i.test(ltvRead.title), "readout resolved the general LTV entry, not Initial LTV");
+    ok([...document.querySelectorAll(".offer .row .k")].every(k => k.textContent !== "Initial LTV"),
+       "an offer readout still carries an Initial LTV row");
+
+    // the tail and the PMI input lock read one predicate, so they cannot disagree
+    setShared("400000","450000");
+    ok(ltvOut.textContent === "88.889% \u2014 PMI required", "readout above 80%: " + ltvOut.textContent);
+    ok($("pmi0").disabled === false, "tail says PMI required but pmi0 is locked");
+    setShared("400000","500000");
+    ok(ltvOut.textContent === "80.00% \u2014 no PMI required", "readout at 80%: " + ltvOut.textContent);
+    ok($("pmi0").disabled === true && $("pmi0").value === "0", "tail says no PMI but pmi0 is editable");
+
+    // output, not input: never in the hash; blank inputs give a bare em dash
+    ok(!new URLSearchParams(serialize()).has("ltvOut"), "readout leaked into the share hash");
+    $("homeValue").value = ""; compute();
+    ok(ltvOut.textContent === "\u2014", "cleared home value: " + ltvOut.textContent);
+    setShared("400000","450000");
+
+    // tap path: readout rows and the shared readout open the popover, input labels do not
     const pop = $("defPop");
     if(pop.showPopover){
+      ltvRead.click();
+      ok(pop.matches(":popover-open"), "shared readout tap did not open the popover");
+      ok(pop.textContent === ltvRead.title, "popover text is not the readout definition: " + pop.textContent);
+      const ltvRow = [...$("out0").querySelectorAll(".row .k")].find(k => k.textContent === "Effective annual rate");
       ltvRow.click();
       ok(pop.popover === "auto", "popover is not auto, so outside-tap and Escape dismiss are lost");
       ok(pop.matches(":popover-open"), "row tap did not open the definition popover");

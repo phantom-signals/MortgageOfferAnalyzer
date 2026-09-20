@@ -21,6 +21,7 @@ Removing the offer-count dropdown left the shared-input card with three fields i
 ### Modified Capabilities
 - `page-layout`: shared-card column contents gain the readout as the right column's last item; mobile stacking order gains it as the final entry.
 - `term-glossary`: LTV hover and tap witnesses move from the offer readout row to the shared readout; the readout is neither a row label nor an input label, so its definition access needs stating.
+- `offer-set`: the count-1 readout inventory no longer lists initial LTV; the figure moves to the shared card.
 
 No `share-link` delta. Its existing requirement already forbids hash keys for readout elements, and a `div` satisfies it.
 

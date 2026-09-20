@@ -11,7 +11,7 @@ The readout SHALL update on every input edit, together with the offer readouts.
 #### Scenario: Readout shows the ratio
 
 - **WHEN** home value is 450000 and loan amount is 400000
-- **THEN** the shared card shows "Initial LTV" with the value 88.89%
+- **THEN** the shared card shows "Initial LTV" with the value 88.889%
 
 #### Scenario: Readout survives an invalid offer
 
@@ -32,7 +32,7 @@ The tail SHALL be derived from the same predicate that locks the per-offer PMI a
 
 #### Scenario: Loan above the threshold
 
-- **WHEN** home value is 450000 and loan amount is 400000, an initial LTV of 88.89%
+- **WHEN** home value is 450000 and loan amount is 400000, an initial LTV of 88.889%
 - **THEN** the readout tail reads "PMI required"
 - **AND** the PMI annual rate input on every offer card is editable
 

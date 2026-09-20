@@ -57,7 +57,7 @@ const ltv = hv > 0 && P > 0 ? pct(P/hv) + " — " + (pmiRequired ? "PMI required
 
 Sourcing from shared inputs, not `res.initialLTV`, means the readout survives an offer with a blank rate — `calc()` returns `null` there and the card prints "Enter valid inputs", but LTV is still well defined. Reusing `pmiRequired` rather than re-testing the ratio guarantees the tail and the input lock agree; they are the same boolean.
 
-`pct()` already formats 2 to 3 decimals ([:703](../../../MortgageOfferAnalyzer.html#L703)), so 400000/450000 reads 88.89%.
+`pct()` already formats 2 to 3 decimals ([:703](../../../MortgageOfferAnalyzer.html#L703)), so 400000/450000 reads 88.889%.
 
 The guard is `hv > 0 && P > 0`, matching `pmiOwed`'s own guard. `NaN > 0` is false, so blank and non-numeric inputs fall to the em dash without a separate `Number.isFinite` check.
 
