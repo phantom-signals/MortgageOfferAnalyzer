@@ -34,8 +34,8 @@ const page = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="description" content="The amortization, PMI and cost-comparison math behind the Mortgage Offer Analyzer, derived from first principles.">
-<link rel="icon" href="/icon-180.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/favicon.png">
 <title>The math behind the Mortgage Offer Analyzer</title>
 <style>
   :root{

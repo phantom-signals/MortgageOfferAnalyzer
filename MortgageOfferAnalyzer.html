@@ -9,15 +9,15 @@
       content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: 'self'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<!-- House-with-bar-chart mark. Left empty: the script serializes the #mark SVG,
-     the one definition of the artwork, into this href. Mobile browsers ignore it and
-     take the raster sibling below; regenerate that with tools/mkicon.py. -->
-<link rel="icon" id="favicon">
+<!-- House-with-bar-chart mark. The static raster is what a crawler reads, since it
+     never runs the script; at load the script overwrites this href with the #mark SVG,
+     the one definition of the artwork. Regenerate the raster with tools/mkicon.py. -->
+<link rel="icon" id="favicon" href="/favicon.png">
 <!-- "apple-touch-icon" is the rel keyword every mobile browser matches on, Android
      included; only the filename is ours to name. Kept on its own element because
      WebKit can read a multi-token rel as a plain icon and never register the touch
      icon at all. -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/favicon.png">
 <title>Mortgage Offer Analyzer</title>
 <style>
   :root{
