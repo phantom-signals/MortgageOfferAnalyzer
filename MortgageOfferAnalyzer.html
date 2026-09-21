@@ -264,7 +264,7 @@
   /* share control — .inp carries the look; min-width holds the box while the label swaps */
   .share{text-align:center;margin:18px 0 6px}
   .share .inp{width:auto;min-width:14em;background:var(--card);cursor:pointer}
-  /* the block stays centered under the button; its lines don't, .share's centering would wrap them ragged both edges */
+  /* block centered under the button, lines left-aligned: inherited centering rags both edges */
   .share .hint{display:block;max-width:52ch;margin:6px auto 0;text-align:left}
 
   .section-label{
@@ -394,7 +394,7 @@
     </div>
   </div>
 
-  <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
+  <!-- Offer A is the clone source for every other offer; keep its markup index-suffixed. -->
   <div class="offers">
     <div class="offer a">
       <!-- The heading is the summary, so the whole row toggles the fold. The fold sits outside
@@ -609,8 +609,7 @@
     +btn.dataset.step > 0 ? insertOffer(i) : removeOffer(i);
   });
 
-  // PMI is only required when the loan starts above 80% LTV. calc() and the UI lock
-  // must agree on this, so both read it from here.
+  // calc() and the UI lock must agree on when PMI is owed, so both read it from here.
   const pmiOwed = (P,hv) => hv>0 && P>0 && P/hv > 0.80 + 1e-12;
 
   // Whole state, and only state: the tag names keep #copyLink, which wears .inp for its look,
@@ -647,8 +646,7 @@
     compute();
   }
 
-  // Label is read once, here: the markup is the only place it is written, so renaming the
-  // button cannot leave a stale name behind in the restore timer.
+  // Label read from the markup, so the restore timer never holds a stale name.
   const copyBtn = $("copyLink"), copyLabel = copyBtn.textContent;
   copyBtn.addEventListener("click", () => {
     location.hash = serialize();            // set first: the link is recoverable by hand even if the copy fails
@@ -681,8 +679,7 @@
       if(t.length > len && s.includes(t)){ best = d.text; len = t.length; }
     return best;
   };
-  // Hover text via the native title attribute, the same mechanism the shared selects already
-  // use. Elements that carry hand-written title text are left alone.
+  // Hover text via the native title attribute; hand-written titles are left alone.
   // ponytail: naive substring scan over every label; index the tokens if the glossary grows.
   function annotate(root){
     root.querySelectorAll(".field label, .row .k, #costTable .k, .shared .readout, #chartHead").forEach(el => {
@@ -829,7 +826,7 @@
     return `<div class="row${total?' total':''}"><span class="k">${paren(k)}</span><span class="v">${v}</span></div>`;
   }
 
-  // Offer A's markup is the template for B/C/D: rewrite the id/for index,
+  // Offer A's markup is the template for the others: rewrite the id/for index,
   // the accent class, and the heading letter.
   function cardHTML(i){
     const L = LETTERS[i];
@@ -904,7 +901,7 @@
     const premiumBasis = $("pmiBasis").value;
 
     // Mirrored into the UI so the input cannot hold a rate the math discards:
-    // at or below 80% LTV the field reads 0 and is locked.
+    // when PMI is not owed the field reads 0 and is locked.
     const pmiRequired = pmiOwed(P, hv);
 
     // Read from the shared inputs, not from any offer's result, so it holds when no offer
