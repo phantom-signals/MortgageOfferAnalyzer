@@ -1,158 +1,4 @@
-# page-layout Specification
-
-## Purpose
-How the mortgage tool distributes horizontal space: container width, prose line length, offer-card arrangement across the available width, and responsive stacking on small viewports.
-## Requirements
-### Requirement: Content container fills the viewport
-The tool's outer content container SHALL span the full width of the browser window, inset only by the page's responsive body padding. It SHALL NOT impose a fixed maximum width.
-
-#### Scenario: Wide desktop window
-- **WHEN** the tool is opened in a browser window 2560px wide
-- **THEN** the shared-input card, the offers grid, and the verdict bar each span the window width minus the body padding on each side
-- **AND** no horizontal scrollbar appears
-
-#### Scenario: Narrow desktop window
-- **WHEN** the browser window is resized to 900px wide
-- **THEN** the content container shrinks to fit the window rather than overflowing
-- **AND** no horizontal scrollbar appears
-
-### Requirement: Offer cards share the available width equally
-Offer cards in one row SHALL each occupy an equal share of the container width. Cards SHALL wrap
-to further rows when the container is too narrow for each card to keep a 260px minimum width.
-With 4 offers, the grid SHALL render 4 columns, 2 columns, or 1 column, and SHALL NOT render 3
-columns. With 1 to 3 offers, the grid SHALL render as many columns as fit, up to the offer count.
-
-Each card SHALL take its own content height. A card SHALL NOT stretch to match a taller card in
-the same row. When cards span more than one row, each card below the first row SHALL sit one grid
-gap below the card above it in the same column, regardless of the height of other cards in that
-row. Cards SHALL keep their column; only their vertical position changes.
-
-#### Scenario: Offers widen with the window
-- **WHEN** the window is widened on a desktop viewport
-- **THEN** cards in each row stay equal width
-- **AND** each card grows proportionally with the container
-
-#### Scenario: Single offer at wide viewport
-- **WHEN** the offer count is 1 on a desktop viewport
-- **THEN** the one offer card spans the full container width, matching the shared-input card above it
-
-#### Scenario: Four offers never leave one card alone
-- **WHEN** the offer count is 4 and the offers grid is at least 1094px wide
-- **THEN** the four cards render in a single row of 4 equal columns
-- **WHEN** the offer count is 4 and the offers grid is narrower than 1094px but wide enough for two 260px columns
-- **THEN** the cards render as 2 rows of 2, Offer A and Offer B on the first row
-- **AND** no row holds a single card beside empty space
-
-#### Scenario: Three offers at mid width
-- **WHEN** the offer count is 3 and the offers grid fits two 260px columns but not three
-- **THEN** Offer A and Offer B share the first row and Offer C sits alone on the second row
-
-#### Scenario: No empty column placeholder
-- **WHEN** the offer count is changed between 1, 2, 3, and 4 on a desktop viewport
-- **THEN** no row reserves an empty column for a card that does not exist
-
-#### Scenario: Folded card beside open card
-- **WHEN** two cards share a row and one is folded while the other is expanded
-- **THEN** the folded card is only as tall as its heading and summary
-- **AND** the expanded card keeps its full height
-
-#### Scenario: Card slides up under a folded card
-- **WHEN** the offer count is 4 in a 2-column layout and Offer A is folded while Offer B is expanded
-- **THEN** Offer C sits one grid gap below Offer A, in the left column
-- **AND** Offer D sits one grid gap below Offer B, in the right column
-- **AND** content below the offers grid starts below the taller column and overlaps neither
-
-#### Scenario: Unfolding restores position
-- **WHEN** Offer A is expanded again
-- **THEN** Offer C moves down to sit one grid gap below Offer A
-- **AND** no card changes column
-
-#### Scenario: Open cards still line up
-- **WHEN** every card in a row, and every card above them, is expanded
-- **THEN** readout rows line up across the cards in that row
-
-#### Scenario: Result rows stay legible when widened
-- **WHEN** an offer card is wider than its content requires
-- **THEN** each readout row keeps its label left-aligned and its value right-aligned on the same line
-- **AND** values do not wrap mid-number
-
-### Requirement: Shared inputs group PMI parameters in one column
-
-On viewports wider than 640px the shared-input card SHALL render two columns of stacked fields. The left column SHALL hold home value, loan amount, then holding period, in that order. The right column SHALL hold PMI removal rule, PMI premium basis, then the initial LTV readout, in that order, so every control that sets a PMI rule sits in one column beside the ratio those rules are measured against. No PMI control SHALL share a row with another shared input.
-
-Each column SHALL hold three items, so neither column ends in a field-sized run of empty card space.
-
-The two columns are grid tracks of the same height. A shorter column SHALL NOT stretch its fields to fill that height; it SHALL leave the difference as empty space below its last field rather than distributing it between them.
-
-#### Scenario: Desktop shared card
-
-- **WHEN** the tool is opened at 1280px wide
-- **THEN** home value, loan amount, and holding period render in the left column, in that order
-- **AND** PMI removal rule, PMI premium basis, and the initial LTV readout render in the right column, in that order
-- **AND** PMI removal rule and PMI premium basis are horizontally aligned with each other
-
-#### Scenario: Neither column ends in a hole
-
-- **WHEN** the shared card is rendered in two columns
-- **THEN** both columns hold three items
-- **AND** no column ends with a field-sized run of empty card space above the card's bottom padding
-
-#### Scenario: Narrow desktop window
-
-- **WHEN** the window is resized to 720px wide
-- **THEN** the two shared-input columns persist
-- **AND** PMI removal rule and PMI premium basis stay in the same column
-
-#### Scenario: Field spacing is even
-
-- **WHEN** the shared card is rendered in two columns
-- **THEN** the vertical gap between two items in a column equals the grid row gap used between shared-card rows before this change
-- **AND** the readout sits at that same gap below the PMI premium basis field
-
-### Requirement: Input size is independent of viewport width
-
-Input font size and input padding SHALL depend on pointer type, never on viewport width. On a fine pointer (mouse or trackpad) every text, number, and select input SHALL render at 14px. On a coarse pointer (touch) it SHALL render at 16px, the size that stops mobile browsers auto-zooming on focus. Padding SHALL step with the font size under the same condition.
-
-No width-based media query SHALL set input font size or input padding.
-
-#### Scenario: Window dragged narrower
-
-- **WHEN** the window is dragged from 1280px wide down through 640px to 400px on a mouse-driven desktop
-- **THEN** the font size of every shared-card input, offer-card input, and the share button stays 14px throughout
-- **AND** input padding stays unchanged throughout
-- **AND** no input text or input box resizes at the 640px boundary
-
-#### Scenario: Focus on a touch device
-
-- **WHEN** an input is focused on a touch device
-- **THEN** the input font size is 16px and the browser does not auto-zoom
-
-#### Scenario: Input type sits within the page scale
-
-- **WHEN** the shared card is rendered on a mouse-driven desktop
-- **THEN** input text renders at 14px, matching the header subtitle and the fold summary
-- **AND** input text renders no smaller than the readout rows — 13px above 640px, 14px at or below it — and no larger than any heading
-
-### Requirement: Mobile stacking is preserved
-At viewport widths of 640px and below, the existing single-column layout SHALL continue to apply unchanged, for any offer count. The shared-input card SHALL stack its items in document order: home value, loan amount, holding period, PMI removal rule, PMI premium basis, initial LTV readout. Column grouping SHALL NOT change that order.
-
-#### Scenario: Phone-width viewport
-- **WHEN** the tool is viewed at 390px wide
-- **THEN** the shared-input grid renders as one column
-- **AND** the shared items appear in order: home value, loan amount, holding period, PMI removal rule, PMI premium basis, initial LTV readout
-- **AND** the offers grid renders as one column with the offer cards stacked in order, Offer A first
-- **AND** on a touch device the input font size is 16px so mobile browsers do not auto-zoom on focus
-
-### Requirement: Calculation behavior is unchanged
-The layout change SHALL NOT alter any computed value, input, control, or script behavior.
-
-#### Scenario: Identical results before and after
-- **WHEN** the same inputs are entered before and after the layout change
-- **THEN** the payment, effective annual rate, LTV, PMI, total cost, holding-period figures, and verdict are identical
-
-#### Scenario: JavaScript-disabled viewer
-- **WHEN** the file is opened in a context with JavaScript disabled, such as an email attachment preview
-- **THEN** the `noscript` warning block still renders and remains readable within the full-window container
+## MODIFIED Requirements
 
 ### Requirement: Card readouts fold on small viewports
 
@@ -297,6 +143,8 @@ choice SHALL survive the re-render that follows any input edit.
 - **THEN** every input holds the value it held before
 - **AND** every readout row shows the same value it showed before
 
+## ADDED Requirements
+
 ### Requirement: Prose wraps at the full content width
 Header subtitle text and footer paragraph text SHALL wrap at the full content-container width. No fixed character-count measure limit SHALL constrain them.
 
@@ -430,3 +278,16 @@ blank readout or verdict, SHALL remain.
 - **WHEN** fewer than two offers compute
 - **THEN** the verdict headline and amount each show a lone em dash
 
+## REMOVED Requirements
+
+### Requirement: Prose spans the full content width
+**Reason**: Footer method and PMI paragraphs removed; scenario named them. Replaced by "Prose wraps at the full content width".
+**Migration**: None. Same wrapping rule.
+
+### Requirement: Verdict bar colors follow color scheme
+**Reason**: Dark scheme no longer keeps a dark verdict bar. Replaced by "Verdict bar uses card colors in both schemes".
+**Migration**: None.
+
+### Requirement: Verdict sits above the offers
+**Reason**: Verdict moved below the offers grid, above the charts; covered by "Verdict sits between the offers and the charts".
+**Migration**: None. Verdict content, ranking, and hidden state unchanged.

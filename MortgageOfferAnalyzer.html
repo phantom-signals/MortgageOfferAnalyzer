@@ -39,10 +39,6 @@
     --good:#2f6f4e;
     --verdict-bg:#161a1d;
     --verdict-fg:#f4f5f2;
-    /* verdict bar only; tooltip and popover stay on --verdict-* */
-    --banner-bg:var(--card);
-    --banner-fg:var(--ink);
-    --banner-line:var(--line-strong);
     --shadow:0 1px 2px rgba(20,26,29,.06),0 8px 24px rgba(20,26,29,.05);
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
     --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -65,9 +61,6 @@
       --good:#7fc9a3;
       --verdict-bg:#0c0e10;
       --verdict-fg:#e8eaec;
-      --banner-bg:var(--verdict-bg);
-      --banner-fg:var(--verdict-fg);
-      --banner-line:transparent;
       --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
     }
   }
@@ -90,7 +83,6 @@
     letter-spacing:-.01em;
   }
   .sub{color:var(--slate);font-size:14px;margin:0}
-  .sub+.sub{margin-top:8px}
   /* Sized in em so the mark scales with whatever text it sits beside. */
   .mark{width:1em;height:1em;vertical-align:-.09em;margin-right:.34em}
 
@@ -143,11 +135,11 @@
     display:flex;align-items:center;gap:8px;
   }
   /* chevron is control chrome, not card identity, and shows in both fold states */
-  .offer h2::before{
+  .offer h2::before,footer summary::before{
     content:"";width:8px;height:8px;
     border:solid var(--slate);border-width:0 2px 2px 0;transform:rotate(-45deg);transition:transform .15s;
   }
-  .fold[open] h2::before{transform:rotate(45deg)}
+  .fold[open] h2::before,footer details[open] > summary::before{transform:rotate(45deg)}
   .offer h2 .steppers{margin-left:auto;display:flex;gap:6px}
   .offer h2 .step{
     width:24px;height:24px;padding:0;cursor:pointer;
@@ -180,7 +172,7 @@
   .fold summary::-webkit-details-marker{display:none}
   .fold summary h2{flex:0 0 100%}
   .fold summary .sum{font-family:var(--mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
-  .fold[open] summary .sum{font-size:12px;font-weight:400;color:var(--slate)}
+  .fold[open] summary .sum{display:none}   /* the readout below repeats it */
   .fold summary small{font-family:var(--sans);font-size:12px;font-weight:400;color:var(--slate)}
   .fold summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
   /* pointer-only, so a tap leaves no stuck hover color */
@@ -257,22 +249,15 @@
 
   /* verdict bar */
   .verdict{
-    margin:22px 0;background:var(--banner-bg);color:var(--banner-fg);border:1px solid var(--banner-line);border-radius:12px;
+    margin:0;background:var(--card);color:var(--ink);border:1px solid var(--line-strong);border-radius:12px;
     padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
     gap:16px;flex-wrap:wrap;
   }
-  .verdict[hidden]{display:none}   /* display:flex above would otherwise beat the UA [hidden] rule */
-  .verdict .label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.65;margin:0 0 4px}
   .verdict .headline{font-size:17px;font-weight:600;margin:0}
   .verdict .amount{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
   .verdict .amount small{font-size:12px;opacity:.7;font-weight:500;display:block;text-align:right}
 
-  /* disclaimer beside the results — --ink, not --slate: an inconspicuous disclaimer is unenforceable */
-  .notice{
-    margin:10px 0 0;padding:11px 14px;border:1px solid var(--line-strong);border-left:3px solid var(--d);
-    border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;line-height:1.5;
-  }
-  .notice a,.sub a{color:var(--a)}
+  .sub a{color:var(--a)}
 
   /* share control — .inp carries the look; min-width holds the box while the label swaps */
   .share{text-align:center;margin:18px 0 6px}
@@ -291,7 +276,10 @@
   footer p{font-size:12px;color:var(--slate);margin:0 0 8px}
   footer a{color:var(--a);text-decoration:none;border-bottom:1px solid transparent}
   footer a:hover{border-bottom-color:var(--a)}
-  .refs{font-size:12px;color:var(--slate);line-height:1.8}
+  /* footer folds: summary is the section label, with the offer-card chevron */
+  footer summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none}
+  footer summary::-webkit-details-marker{display:none}
+  footer summary:focus-visible{outline:2px solid var(--slate);outline-offset:2px;border-radius:4px}
 
   /* definition popover; border and margin override the UA popover defaults */
   #defPop{
@@ -300,8 +288,6 @@
     padding:12px 14px;font-size:13px;line-height:1.5;
     box-shadow:0 4px 14px rgba(0,0,0,.22);
   }
-  .tap-hint{display:none}
-  @media (hover:none){.tap-hint{display:block;margin-top:6px}}
 
   /* glossary — single source for both the printed definitions and the hover text */
   .glossary{margin:0;font-size:12px;color:var(--slate);line-height:1.6}
@@ -325,7 +311,7 @@
 <body>
   <noscript>
     <div style="border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:14px;line-height:1.5">
-      <strong>Calculations are disabled.</strong> This viewer has JavaScript turned off &mdash; email apps block scripts in attachments, so nothing computes here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); it works offline.
+      <strong>Calculations are disabled.</strong> This viewer has JavaScript turned off: email apps block scripts in attachments, so nothing computes here. Save the file to your device and open it in a browser (Firefox, Chrome, Safari); it works offline.
     </div>
   </noscript>
   <header>
@@ -362,15 +348,14 @@
       </svg>
       Mortgage Offer Analyzer
     </h1>
-    <p class="sub"><strong>Free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a></strong> &mdash; MIT licensed, runs entirely in your browser.</p>
-    <p class="sub">Enter a shared loan amount and home value, then the terms for 1 to 4 offers, including closing costs, points, and other upfront fees. Results show the payment per period, total interest, PMI, and total cost; either to full term or to a holding period you set. Excludes property taxes, homeowners insurance, and other recurring payments. <span class="hint tap-hint">Tap any result row label for its definition.</span></p>
+    <p class="sub">A free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a> mortgage analysis tool that runs entirely in your browser.</p>
   </header>
 
   <div class="shared">
     <!-- Left group: loan terms. A new loan-term field goes inside this div, not as a .shared child. -->
     <div class="shared-col">
     <div class="field">
-      <label for="homeValue">Home value at purchase <span class="hint">&mdash; lower of sale price or appraisal; drives PMI</span></label>
+      <label for="homeValue">Home value at purchase <span class="hint">(lower of sale price or appraisal)</span></label>
       <input class="inp" id="homeValue" type="number" min="0" step="1000" value="450000" inputmode="decimal">
     </div>
     <div class="field">
@@ -378,7 +363,7 @@
       <input class="inp" id="amount" type="number" min="0" step="1000" value="400000" inputmode="decimal">
     </div>
     <div class="field">
-      <label for="horizon">Holding period <span class="hint">&mdash; years until you sell/refinance (optional; blank = full term)</span></label>
+      <label for="horizon">Holding period <span class="hint">(years until you sell/refinance; leave blank for full term)</span></label>
       <input class="inp" id="horizon" type="number" min="0" step="1" value="10" placeholder="e.g. 10" inputmode="decimal">
     </div>
     </div>
@@ -392,7 +377,7 @@
       </select>
     </div>
     <div class="field">
-      <label for="pmiBasis">PMI premium basis <span class="hint">&mdash; check your rate quote; lenders use both</span></label>
+      <label for="pmiBasis">PMI premium basis</label>
       <select class="inp" id="pmiBasis" title="How the premium is computed each month. Insurers use both conventions; your mortgage insurance disclosure states which applies to you.">
         <option value="declining" selected title="Premium = current scheduled balance x annual PMI rate / 12, so the dollar amount falls as the loan amortizes. Common convention.">Recalculated on declining balance</option>
         <option value="fixed" title="Premium = original loan amount x annual PMI rate / 12, a constant dollar amount until PMI ends. Used by some policies.">Fixed on original loan amount</option>
@@ -404,15 +389,6 @@
       <div class="val" id="ltvOut">&mdash;</div>
     </div>
     </div>
-  </div>
-
-  <div class="verdict" id="verdict" hidden>
-    <div>
-      <p class="label">Verdict</p>
-      <p class="headline" id="verdictText">&mdash;</p>
-      <p class="horizon-note" id="horizonNote"></p>
-    </div>
-    <div class="amount" id="verdictAmount">&mdash;</div>
   </div>
 
   <!-- Offer A is the clone source for offers B through D; keep its markup index-suffixed. -->
@@ -448,7 +424,7 @@
           <input class="inp" id="fees0" type="number" min="0" step="100" value="1500" inputmode="decimal">
         </div>
         <div class="field">
-          <label for="pmi0">PMI annual rate (%) <span class="hint">&mdash; 0 if none</span></label>
+          <label for="pmi0">PMI annual rate (%)</label>
           <input class="inp" id="pmi0" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
         </div>
         <div class="readout" id="out0"></div>
@@ -456,47 +432,49 @@
     </div>
   </div>
 
-  <p class="section-label"><span id="barsHead">Cost to walk away</span> <span class="hint">&mdash; <span id="barsHint"></span></span></p>
+  <div id="verdict" hidden>
+  <p class="section-label">Verdict</p>
+  <div class="verdict">
+    <div>
+      <p class="headline" id="verdictText">&mdash;</p>
+      <p class="horizon-note" id="horizonNote"></p>
+    </div>
+    <div class="amount" id="verdictAmount">&mdash;</div>
+  </div>
+  </div>
+
+  <p class="section-label"><span id="barsHead">Cost to walk away</span> <span class="hint">(<span id="barsHint"></span>)</span></p>
   <div class="chart-wrap"><div id="bars"></div><div id="costTable"></div></div>
 
   <!-- The verdict reads one point off these curves; where the lowest curve changes, it flips. -->
-  <p class="section-label">Cost over time <span class="hint">&mdash; what walking away at any point costs, including payoff of the balance still owed</span></p>
+  <p class="section-label">Cost over time <span class="hint">(what walking away at any point costs, including payoff of the balance still owed)</span></p>
   <div class="chart-wrap">
     <div class="chart-legend" id="chartLegend"></div>
     <div id="chart"></div>
     <div class="tip" id="chartTip"></div>
   </div>
 
-  <!-- Outside the verdict: the verdict hides at one offer, the disclaimer always shows. -->
-  <p class="notice">
-    <strong>Estimates only &mdash; not financial advice.</strong>
-    A model, not a quote; figures may differ from any lender&rsquo;s.
-    Verify against your official Loan Estimate.
-    No warranty &mdash; see <a href="#terms">Terms of Use</a>.
-  </p>
-
   <!-- Sibling of the verdict, not a child: the verdict is hidden at one offer, which is still worth sharing. -->
   <div class="share">
     <button class="inp" id="copyLink" type="button">Copy analysis link</button>
-    <span class="hint">The link carries the figures you entered &mdash; loan amount, home value, rates, fees. Share it only with people you trust with those figures.</span>
+    <span class="hint">The link carries the figures you entered: loan amount, home value, rates, fees. Share it only with people you trust with those figures.</span>
   </div>
 
   <footer>
-    <p><strong>Method.</strong> Payment M = P·i·(1+i)<sup>n</sup> / [(1+i)<sup>n</sup>&minus;1], where i = rate&divide;payments-per-year and n = term&times;payments-per-year. Total to term = M&times;n + fees + PMI. EAR = (1+i)<sup>m</sup>&minus;1. Over a holding period, cost = payments made + PMI paid + fees + remaining balance still owed. Every formula on this page is derived from first principles in <a href="math.html">the math behind the analyzer</a>.</p>
-    <p><strong>PMI.</strong> Charged while the <em>scheduled</em> loan balance exceeds the selected share (78% or 80%) of the home&rsquo;s original value, and never past the midpoint of the amortization schedule (HPA &ldquo;final termination&rdquo;). Under the Homeowners Protection Act, servicers must terminate PMI automatically at 78% LTV of original value and must grant a written cancellation request at 80%; original value means the lower of sale price or appraised value at purchase. This model assumes scheduled amortization only &mdash; extra principal payments or appreciation can end PMI sooner, and you must ask for cancellation at 80%. FHA mortgage insurance (MIP) follows different rules, which this page leaves out.</p>
-    <p class="refs">
-      Existing calculators to cross-check:<br>
-      Bankrate amortization &mdash; <a href="https://www.bankrate.com/mortgages/amortization-calculator/" target="_blank" rel="noopener">bankrate.com/mortgages/amortization-calculator</a><br>
-      Fannie Mae &mdash; <a href="https://yourhome.fanniemae.com/calculators-tools/mortgage-calculator" target="_blank" rel="noopener">yourhome.fanniemae.com/calculators-tools/mortgage-calculator</a><br>
-      SmartAsset (adds taxes/insurance) &mdash; <a href="https://smartasset.com/mortgage/mortgage-calculator" target="_blank" rel="noopener">smartasset.com/mortgage/mortgage-calculator</a>
-    </p>
-    <p class="section-label">Definitions</p>
+    <p>Verify against your official Loan Estimate. This tool is not financial advice. See <a href="#terms">Terms of Use</a>.</p>
+
+    <p>Interested in the math behind the analyzer? <a href="math.html">Learn more</a>.</p>
+    
+    <p>Licensed under the <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>. Copyright (c) 2026 <a href="https://github.com/phantom-signals" target="_blank" rel="noopener">phantom-signals</a>.</p>
+
+    <details>
+    <summary class="section-label">Glossary</summary>
     <!-- Definitions live here only; the script derives every hover tooltip from this list.
          data-match holds the "|"-separated snippets that identify the term inside a rendered
          label. Order specific before general — first match wins. No data-match: glossary-only. -->
     <dl class="glossary" id="glossary">
       <dt>Offer</dt>
-      <dd>One lender&rsquo;s quoted loan terms &mdash; rate, term, fees, and mortgage insurance &mdash; for the same loan amount, so you can compare competing quotes side by side.</dd>
+      <dd>One lender&rsquo;s quoted loan terms (rate, term, fees, and mortgage insurance) for the same loan amount, so you can compare competing quotes side by side.</dd>
 
       <dt data-match="loan amount|principal">Principal (loan amount)</dt>
       <dd>The sum you borrow, before interest; each payment splits between interest owed and principal repaid, and what remains unpaid is your balance.</dd>
@@ -517,7 +495,7 @@
       <dd>The nominal yearly rate quoted on the loan, divided by the number of payments per year to get the rate charged each period.</dd>
 
       <dt data-match="payments per year">Payments per year</dt>
-      <dd>How many payments the schedule makes annually &mdash; 12 for monthly, 26 for biweekly. This sets both the periodic rate and the number of payments.</dd>
+      <dd>How many payments the schedule makes annually: 12 for monthly, 26 for biweekly. This sets both the periodic rate and the number of payments.</dd>
 
       <dt data-match="upfront fees|points">Upfront fees and points</dt>
       <dd>Cash paid at closing for origination and other charges, plus points paid to buy the rate down; one point is 1% of the loan amount.</dd>
@@ -541,7 +519,7 @@
       <dd>Every dollar of interest paid across the full amortization schedule: all payments made minus the principal borrowed.</dd>
 
       <dt data-match="interest paid|interest">Interest paid</dt>
-      <dd>Interest paid through the holding period only &mdash; payments made so far minus the principal actually retired in that span.</dd>
+      <dd>Interest paid through the holding period only: payments made so far minus the principal actually retired in that span.</dd>
 
       <dt data-match="pmi ends">PMI ends</dt>
       <dd>The payment number, and its year, at which the scheduled balance first drops to the removal threshold, or the amortization midpoint if that comes first.</dd>
@@ -562,7 +540,7 @@
       <dd>The years the amortization schedule runs, which sets the payment size. Thirty years is standard; shorter terms cost more each month, less overall.</dd>
 
       <dt data-match="pmi">PMI (private mortgage insurance)</dt>
-      <dd>Insurance the lender requires while the loan is large relative to the home&rsquo;s value; it protects the lender, not you, and is charged on top of principal and interest.</dd>
+      <dd>Insurance the lender requires while the loan is large relative to the home&rsquo;s value, typically when the down payment is less than 20%; it protects the lender, not you, if the borrower defaults, and is charged on top of principal and interest.</dd>
 
       <dt>HPA (Homeowners Protection Act)</dt>
       <dd>The federal law setting PMI exit rules: automatic termination at 78% LTV of original value, a cancellation request you may make at 80%, and final termination at the amortization midpoint regardless of balance.</dd>
@@ -577,23 +555,19 @@
       <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; this page does not model it.</dd>
 
       <dt>MIP (mortgage insurance premium)</dt>
-      <dd>The FHA equivalent of PMI, which follows different rules &mdash; often for the life of the loan; this page does not model it.</dd>
+      <dd>The FHA equivalent of PMI, which follows different rules (often for the life of the loan); this page does not model it.</dd>
     </dl>
+    </details>
 
-    <p style="margin-top:16px">Compounding conventions differ by jurisdiction (e.g., Canadian fixed-rate mortgages compound semi-annually by law), which affects the effective rate.</p>
-
-    <p class="section-label">Feedback</p>
-    <p>Questions, comments, feature requests, or bug reports &mdash; <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">github.com/phantom-signals/MortgageOfferAnalyzer</a></p>
-
-    <p class="section-label">Privacy</p>
-    <p>Nothing you enter leaves your device. It sets no cookies, stores nothing in your browser, and runs no analytics. No account, no email. A saved copy makes no network requests at all; served from a web host, the page fetches nothing but its own icon. <strong>Copy analysis link</strong> writes your figures into the URL in plain text and copies it to your clipboard. That link is the only copy; anyone you send it to can read the numbers in it.</p>
-
-    <p class="section-label" id="terms">Terms of Use</p>
+    <details id="terms">
+    <summary class="section-label">Privacy and Terms of Use</summary>
+    <p><strong>Nothing you enter leaves your device.</strong> It sets no cookies, stores nothing in your browser, and runs no analytics. No account, no email. A saved copy makes no network requests at all; served from a web host, the page fetches nothing but its own icon. <strong>Copy analysis link</strong> writes your figures into the URL in plain text and copies it to your clipboard. That link is the only copy; anyone you send it to can read the numbers in it.</p>
     <p><strong>No advice, no relationship.</strong> This page is an educational calculator. It is not financial, lending, tax, legal, or investment advice, and not an offer, quote, commitment, or solicitation to lend. Use creates no advisory, fiduciary, broker, or client relationship. It is not operated by, affiliated with, endorsed by, or compensated by any lender, broker, or mortgage originator, and makes no referrals.</p>
     <p><strong>No warranty.</strong> THE PAGE AND ITS CALCULATIONS ARE PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo;, WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY WARRANTY OF ACCURACY, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. Results are estimates from figures you supply. They may be wrong, incomplete, or out of date, and exclude property taxes, homeowners insurance, escrow, adjustable rates, and FHA mortgage insurance. Your lender&rsquo;s figures and your official Loan Estimate govern, not this page.</p>
     <p><strong>Limitation of liability.</strong> TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE AUTHOR IS NOT LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOST PROFITS, LOST SAVINGS, OR LOST OPPORTUNITY, ARISING FROM OR RELATED TO YOUR USE OF OR RELIANCE ON THIS PAGE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE AUTHOR&rsquo;S TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED ONE HUNDRED U.S. DOLLARS (USD $100). You are solely responsible for your financial decisions. Any exclusion above that law forbids does not apply.</p>
     <p><strong>Governing law.</strong> These terms are governed by the laws of the Commonwealth of Massachusetts, USA, without regard to its conflict-of-laws rules. Any dispute shall be brought exclusively in the state or federal courts located in Massachusetts, and you consent to that venue. Nothing here waives a right that cannot be waived by agreement under Massachusetts law, including under Mass. Gen. Laws ch. 93A.</p>
     <p><strong>Changes and license.</strong> These terms may change without notice; the version on this page when you use it applies. The source is separately licensed under the MIT License, whose warranty disclaimer applies to any copy you obtain. If you do not accept these terms, do not use this page.</p>
+    </details>
   </footer>
 
 <!-- filled by the definition tap handler -->
@@ -677,6 +651,13 @@
       .then(() => setTimeout(() => copyBtn.textContent = copyLabel, 2000));
   });
 
+  // In place, not by fragment: the hash holds share state, and a closed fold would hide the target.
+  document.querySelector('a[href="#terms"]').addEventListener("click", e => {
+    e.preventDefault();
+    $("terms").open = true;
+    $("terms").scrollIntoView();
+  });
+
   // Definitions are written once, in the footer glossary; tooltips are read back out of it so
   // the two cannot drift. Ordered specific before general in the markup — first match wins.
   const DEFS = [...document.querySelectorAll("#glossary dt")]
@@ -701,13 +682,16 @@
   }
 
   // Touch has no hover, so the title text needs a tap path. Delegated because readouts
-  // re-render on every edit. Input labels excluded: a label click already focuses its input.
+  // re-render on every edit.
   const defPop = $("defPop");
   if(defPop.showPopover){
     // Manual: auto light-dismisses on the pointer press, leaving a re-tap on the opening label
     // indistinguishable from a first open. The hide covers any click; only a different label reopens.
     document.addEventListener("click", e => {
-      const el = e.target.closest(".row .k, #costTable .k, .shared .readout");
+      const el = e.target.closest(".row .k, #costTable .k, .shared .readout, .field label");
+      // A defined input label shows its definition instead of focusing the input, so a phone
+      // keyboard does not slide up over the popover. The input box itself still takes focus.
+      if(el && el.tagName === "LABEL" && el.title) e.preventDefault();
       const same = el && defPop.matches(":popover-open") && defPop.textContent === el.title;
       defPop.hidePopover();
       if(!el || !el.title || same) return;
@@ -913,7 +897,7 @@
     // Read from the shared inputs, not from any offer's result, so it holds when no offer
     // computes. NaN > 0 is false, so blank and non-numeric fall to the em dash.
     $("ltvOut").textContent = hv > 0 && P > 0
-      ? pct(P/hv) + " \u2014 " + (pmiRequired ? "PMI required" : "no PMI required")
+      ? pct(P/hv) + " (" + (pmiRequired ? "PMI required" : "no PMI required") + ")"
       : "\u2014";
 
     const costs = [];   // one entry per offer that computed; invalid offers are skipped
@@ -957,7 +941,8 @@
     const label = s => useHorizon ? s.k : (s.kTerm || s.k);
     $("barsHead").textContent = useHorizon ? "Cost to walk away" : "Cost to term";
     // "Cost to term" would match the Term entry, so the to-term hint looks up the total instead
-    const def = defFor(useHorizon ? "cost to walk away" : "total cost");
+    // Lead clause only: the component breakdown after the colon is the table itself.
+    const def = defFor(useHorizon ? "cost to walk away" : "total cost").split(":")[0];
     $("barsHint").textContent = def.charAt(0).toLowerCase() + def.slice(1);
     table.innerHTML = "";
     const blank = `<p class="chart-empty">Enter valid offer terms to see what each one is made of.</p>`;
@@ -1349,7 +1334,7 @@
     restore("amount=300000&homeValue=450000&pmi0=0.62");   // hash writes onto a locked field
     ok($("pmi0").disabled === true, "pmi0 unlocked by a restore below 80% LTV");
     ok($("pmi0").value === "0", "locked field shows a restored rate: " + $("pmi0").value);
-    ok($("ltvOut").textContent.endsWith("no PMI required"), "readout: " + $("ltvOut").textContent);
+    ok($("ltvOut").textContent.endsWith("(no PMI required)"), "readout: " + $("ltvOut").textContent);
     setShared("400000","450000");                          // unlock: the stash comes back
     ok($("pmi0").value === "0.62", "restored rate lost behind the lock: " + $("pmi0").value);
     renderOffers(4);                                       // the checks below read pmi1
@@ -1365,12 +1350,19 @@
     ok([...document.querySelectorAll(".offer .row .k")].every(k => k.textContent !== "Initial LTV"),
        "an offer readout still carries an Initial LTV row");
 
+    // the Terms link opens its fold without writing the hash
+    const terms = $("terms"), hashAtTerms = location.hash;
+    terms.open = false;
+    document.querySelector('a[href="#terms"]').click();
+    ok(terms.open && location.hash === hashAtTerms, "Terms link did not open its fold, or wrote the hash");
+    terms.open = false;
+
     // the tail and the PMI input lock read one predicate, so they cannot disagree
     setShared("400000","450000");
-    ok(ltvOut.textContent === "88.889% \u2014 PMI required", "readout above 80%: " + ltvOut.textContent);
+    ok(ltvOut.textContent === "88.889% (PMI required)", "readout above 80%: " + ltvOut.textContent);
     ok($("pmi0").disabled === false, "tail says PMI required but pmi0 is locked");
     setShared("400000","500000");
-    ok(ltvOut.textContent === "80.00% \u2014 no PMI required", "readout at 80%: " + ltvOut.textContent);
+    ok(ltvOut.textContent === "80.00% (no PMI required)", "readout at 80%: " + ltvOut.textContent);
     ok($("pmi0").disabled === true && $("pmi0").value === "0", "tail says no PMI but pmi0 is editable");
 
     // output, not input: never in the hash; blank inputs give a bare em dash
@@ -1392,6 +1384,7 @@
       ok(pop.textContent === ltvRow.title, "popover text is not the row's definition: " + pop.textContent);
       const dds = [...document.querySelectorAll("#glossary dd")].map(dd => dd.textContent.trim());
       ok(dds.includes(pop.textContent), "popover text is not a glossary definition");
+      ok(!$("glossary").closest("details").open, "opening a definition opened the glossary fold");
       pop.click();
       ok(!pop.matches(":popover-open"), "tapping the popover did not dismiss it");
       ltvRow.click();
@@ -1405,8 +1398,12 @@
       ltvRow.click();
       dispatchEvent(new Event("scroll"));
       ok(!pop.matches(":popover-open"), "scroll did not dismiss the popover");
-      document.querySelector('label[for="pmi1"]').click();
-      ok(!pop.matches(":popover-open"), "input label opened the popover");
+      const rateLabel = document.querySelector('label[for="rate1"]');
+      rateLabel.click();
+      ok(pop.matches(":popover-open") && pop.textContent === rateLabel.title, "input label did not open its definition");
+      ok(document.activeElement !== $("rate1"), "input label focused its input");
+      rateLabel.click();
+      ok(!pop.matches(":popover-open"), "re-tapping the input label did not dismiss the popover");
     }
 
     // every rendered label and readout row resolves to a definition
@@ -1578,9 +1575,11 @@
     ok(!ctLabels().includes("PMI"), "PMI row shown with no PMI in any offer");   // no offer owes PMI at this LTV
     ok(ctLabels().includes("Remaining balance"), "no remaining balance row at a holding period");
     ok($("barsHead").textContent === "Cost to walk away", "heading " + $("barsHead").textContent);
+    ok($("barsHint").textContent === "what the loan costs if you leave at the end of the holding period",
+       "walk-away hint: " + $("barsHint").textContent);
     $("horizon").value = ""; compute();
     ok($("barsHead").textContent === "Cost to term", "heading " + $("barsHead").textContent);
-    ok(/^what the loan costs to full term/.test($("barsHint").textContent), "to-term hint: " + $("barsHint").textContent);
+    ok($("barsHint").textContent === "what the loan costs to full term", "to-term hint: " + $("barsHint").textContent);
     ok(!ctLabels().includes("Remaining balance"), "remaining balance row at term");
     ok(ctLabels().includes("Total interest") && ctLabels().at(-1).startsWith("Total cost"),
        "to-term labels: " + ctLabels().join(" | "));
