@@ -61,7 +61,7 @@ A readout row that is a section divider rather than a figure — "Through holdin
 - **THEN** the existing detailed hover text on those controls still appears, unchanged
 
 #### Scenario: Specific term still beats the general one
-- **WHEN** a label is resolved whose text also contains a more general term, such as "Total interest (to term)"
+- **WHEN** a label is resolved whose text also contains a more general term, such as "Total interest"
 - **THEN** it resolves to the "Total interest" entry, not to the "Interest paid" entry that also matches on "interest"
 - **AND** the shared readout resolves to "Initial LTV"
 
@@ -112,7 +112,7 @@ The popover SHALL work on every offer card, including cards added after load, an
 
 #### Scenario: Tap a readout row label
 
-- **WHEN** the reader taps the "Total interest (to term)" row label in an offer readout
+- **WHEN** the reader taps the "Total interest" row label in an offer readout
 - **THEN** a popover opens showing the total interest definition
 - **AND** the definition text matches the glossary entry for total interest
 
@@ -294,7 +294,7 @@ Glossary entries SHALL render in alphabetical order of their term text, compared
 When a label contains match tokens from more than one entry, it SHALL resolve to the entry whose matching token is longest. Entry position in the glossary SHALL NOT decide which definition a label receives, except to break a tie between equal-length matching tokens.
 
 #### Scenario: Specific entry wins though it sorts later
-- **WHEN** "Total interest (to term)" is resolved while "Interest paid" sorts before "Total interest"
+- **WHEN** "Total interest" is resolved while "Interest paid" sorts before "Total interest"
 - **THEN** it resolves to the "Total interest" entry
 
 #### Scenario: Specific PMI entry wins over general PMI
@@ -316,3 +316,46 @@ The header SHALL carry a line under the subtitle reading "Click on any term to s
 - **WHEN** the reader follows the glossary link while the glossary fold is closed
 - **THEN** the glossary fold opens and scrolls into view
 - **AND** the URL hash is unchanged
+
+### Requirement: Section headings carry definitions
+
+The cost comparison heading and the cost-over-time heading SHALL expose their glossary definition
+as native `title` hover text and SHALL open it in the shared definition popover on click or tap,
+dismissing the same way as for readout row labels. The glossary SHALL carry a "Cost over time"
+entry whose definition explains that the chart shows what walking away at any point costs,
+including payoff of the balance still owed.
+
+The cost comparison heading SHALL carry the definition for the wording it currently shows, through
+every flip of the holding-period input. "Cost to term" SHALL resolve to the total cost entry, not
+the term entry.
+
+Only these two headings SHALL gain definitions. Other section labels, such as "Verdict",
+"Glossary", and "Privacy and Terms of Use", SHALL carry no definition and SHALL open no popover.
+
+#### Scenario: Tap the cost-over-time heading
+
+- **WHEN** the reader taps the "Cost over time" heading
+- **THEN** the popover opens showing the cost over time glossary definition
+
+#### Scenario: Tap the cost comparison heading at term
+
+- **WHEN** the holding-period field is blank and the reader taps the "Cost to term" heading
+- **THEN** the popover opens showing the total cost definition
+
+#### Scenario: Footer section label stays inert
+
+- **WHEN** the reader clicks the "Privacy and Terms of Use" summary
+- **THEN** no definition popover opens
+- **AND** the section toggles as before
+
+### Requirement: Holding period definition states unit and blank behavior
+
+The holding period glossary definition SHALL state that the period is in years and that leaving it
+blank runs costs to full term, since the input label no longer carries that hint.
+
+#### Scenario: Tap the holding period label
+
+- **WHEN** the reader taps the "Holding period (years)" label
+- **THEN** the popover text says the period is in years
+- **AND** says a blank field runs costs to full term
+

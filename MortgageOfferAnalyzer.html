@@ -98,6 +98,8 @@
   .readout .lbl{font-size:12px;font-weight:600;color:var(--slate);letter-spacing:.02em}
   .readout .val{font-family:var(--mono);font-size:14px;color:var(--ink);padding:9px 0}
   .hint{font-size:11px;color:var(--slate);font-weight:400}
+  /* atomic in the line, so a wrapping label breaks before "(", yet wraps inside when wider than its box */
+  .paren{display:inline-block}
   .inp{
     font-family:var(--mono);font-size:14px;color:var(--ink);
     background:var(--paper);border:1px solid var(--line-strong);border-radius:8px;
@@ -268,8 +270,6 @@
     font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);
     font-weight:600;margin:26px 0 10px;
   }
-  /* the hint is a sentence, so it opts out of the label's uppercase tracking */
-  .section-label .hint{text-transform:none;letter-spacing:0}
   .horizon-note{font-size:12px;color:var(--slate);margin-top:2px}
 
   footer{margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
@@ -357,15 +357,15 @@
     <!-- Left group: loan terms. A new loan-term field goes inside this div, not as a .shared child. -->
     <div class="shared-col">
     <div class="field">
-      <label for="homeValue">Home value at purchase <span class="hint">(lower of sale price or appraisal)</span></label>
+      <label for="homeValue">Home value at purchase</label>
       <input class="inp" id="homeValue" type="number" min="0" step="1000" value="450000" inputmode="decimal">
     </div>
     <div class="field">
-      <label for="amount">Loan amount (principal)</label>
+      <label for="amount">Loan amount <span class="paren">(principal)</span></label>
       <input class="inp" id="amount" type="number" min="0" step="1000" value="400000" inputmode="decimal">
     </div>
     <div class="field">
-      <label for="horizon">Holding period <span class="hint">(years until you sell/refinance; leave blank for full term)</span></label>
+      <label for="horizon">Holding period <span class="paren">(years)</span></label>
       <input class="inp" id="horizon" type="number" min="0" step="1" value="10" placeholder="e.g. 10" inputmode="decimal">
     </div>
     </div>
@@ -410,11 +410,11 @@
           <span class="sum" id="sum0"></span>
         </summary>
         <div class="field">
-          <label for="rate0">Annual interest rate (%)</label>
+          <label for="rate0">Annual interest rate <span class="paren">(%)</span></label>
           <input class="inp" id="rate0" type="number" min="0" step="0.001" value="6.75" inputmode="decimal">
         </div>
         <div class="field">
-          <label for="term0">Term (years)</label>
+          <label for="term0">Term <span class="paren">(years)</span></label>
           <input class="inp" id="term0" type="number" min="1" step="1" value="30" inputmode="decimal">
         </div>
         <div class="field">
@@ -422,11 +422,11 @@
           <input class="inp" id="freq0" type="number" min="1" step="1" value="12" inputmode="decimal">
         </div>
         <div class="field">
-          <label for="fees0">Upfront fees + points ($)</label>
+          <label for="fees0">Upfront fees + points <span class="paren">($)</span></label>
           <input class="inp" id="fees0" type="number" min="0" step="100" value="1500" inputmode="decimal">
         </div>
         <div class="field">
-          <label for="pmi0">PMI annual rate (%)</label>
+          <label for="pmi0">PMI annual rate <span class="paren">(%)</span></label>
           <input class="inp" id="pmi0" type="number" min="0" step="0.01" value="0.55" inputmode="decimal">
         </div>
         <div class="readout" id="out0"></div>
@@ -445,11 +445,11 @@
   </div>
   </div>
 
-  <p class="section-label"><span id="barsHead">Cost to walk away</span> <span class="hint">(<span id="barsHint"></span>)</span></p>
+  <p class="section-label"><span id="barsHead">Cost to walk away</span></p>
   <div class="chart-wrap"><div id="bars"></div><div id="costTable"></div></div>
 
   <!-- The verdict reads one point off these curves; where the lowest curve changes, it flips. -->
-  <p class="section-label">Cost over time <span class="hint">(what walking away at any point costs, including payoff of the balance still owed)</span></p>
+  <p class="section-label"><span id="chartHead">Cost over time</span></p>
   <div class="chart-wrap">
     <div class="chart-legend" id="chartLegend"></div>
     <div id="chart"></div>
@@ -465,9 +465,9 @@
   <footer>
     <p>Verify against your official Loan Estimate. This tool is not financial advice. See <a href="#terms">Terms of Use</a>.</p>
 
-    <p>Interested in the math behind the analyzer? <a href="math.html">Learn more</a>.</p>
+    <p>Interested in the math? <a href="math.html">Learn more</a>.</p>
     
-    <p>Licensed under the <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>. Copyright (c) 2026 <a href="https://github.com/phantom-signals" target="_blank" rel="noopener">phantom-signals</a>.</p>
+    <p><a href="https://github.com/phantom-signals/MortgageOfferAnalyzer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>. Copyright (c) 2026 <a href="https://github.com/phantom-signals" target="_blank" rel="noopener">phantom-signals</a>.</p>
 
     <details>
     <summary class="section-label">Glossary</summary>
@@ -485,22 +485,25 @@
       <dt data-match="annual interest rate">Annual interest rate</dt>
       <dd>The nominal yearly rate quoted on the loan, divided by the number of payments per year to get the rate charged each period.</dd>
 
+      <dt data-match="cost over time">Cost over time</dt>
+      <dd>What walking away at any point costs, including payoff of the balance still owed.</dd>
+
       <dt data-match="cost to walk away">Cost to walk away</dt>
       <dd>What the loan costs if you leave at the end of the holding period: payments made, plus mortgage insurance paid, plus upfront fees, plus the remaining balance.</dd>
 
-      <dt data-match="effective annual rate">EAR (effective annual rate)</dt>
+      <dt data-match="effective annual rate">EAR <span class="paren">(effective annual rate)</span></dt>
       <dd>What the nominal rate costs over a year once you count compounding within it, so loans with different payment frequencies compare fairly.</dd>
 
       <dt>Escrow</dt>
       <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; this page does not model it.</dd>
 
       <dt data-match="holding period">Holding period</dt>
-      <dd>How long you expect to keep the loan before selling or refinancing; costs are truncated there instead of running to full term.</dd>
+      <dd>How long, in years, you expect to keep the loan before selling or refinancing; costs are truncated there. Leave it blank to run costs to full term.</dd>
 
-      <dt data-match="home value at purchase|original value">Home value at purchase (original value)</dt>
+      <dt data-match="home value at purchase|original value">Home value at purchase <span class="paren">(original value)</span></dt>
       <dd>The lower of the sale price and the appraised value at closing; mortgage insurance rules measure your loan against this figure, not against later market value.</dd>
 
-      <dt>HPA (Homeowners Protection Act)</dt>
+      <dt>HPA <span class="paren">(Homeowners Protection Act)</span></dt>
       <dd>The federal law setting PMI exit rules: automatic termination at 78% LTV of original value, a cancellation request you may make at 80%, and final termination at the amortization midpoint regardless of balance.</dd>
 
       <dt data-match="initial ltv">Initial LTV</dt>
@@ -509,22 +512,22 @@
       <dt data-match="interest paid|interest">Interest paid</dt>
       <dd>Interest paid through the holding period only: payments made so far minus the principal actually retired in that span.</dd>
 
-      <dt>LTV (loan-to-value)</dt>
+      <dt>LTV <span class="paren">(loan-to-value)</span></dt>
       <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and triggers removal of mortgage insurance.</dd>
 
-      <dt>MIP (mortgage insurance premium)</dt>
+      <dt>MIP <span class="paren">(mortgage insurance premium)</span></dt>
       <dd>The FHA equivalent of PMI, which follows different rules (often for the life of the loan); this page does not model it.</dd>
 
       <dt>Offer</dt>
       <dd>One lender&rsquo;s quoted loan terms (rate, term, fees, and mortgage insurance) for the same loan amount, so you can compare competing quotes side by side.</dd>
 
-      <dt data-match="payment, p&amp;i|payment incl|payments made">Payment, P&amp;I (principal and interest)</dt>
+      <dt data-match="payment, p&amp;i|payment incl|payments made">Payment, P&amp;I <span class="paren">(principal and interest)</span></dt>
       <dd>The scheduled payment covering interest owed plus principal repaid; it excludes mortgage insurance, property taxes, homeowners insurance, and escrow.</dd>
 
       <dt data-match="payments per year">Payments per year</dt>
       <dd>How many payments the schedule makes annually: 12 for monthly, 26 for biweekly. This sets both the periodic rate and the number of payments.</dd>
 
-      <dt data-match="pmi">PMI (private mortgage insurance)</dt>
+      <dt data-match="pmi">PMI <span class="paren">(private mortgage insurance)</span></dt>
       <dd>Insurance the lender requires while the loan is large relative to the home&rsquo;s value, typically when the down payment is less than 20%; it protects the lender, not you, if the borrower defaults, and is charged on top of principal and interest.</dd>
 
       <dt data-match="pmi annual rate">PMI annual rate</dt>
@@ -539,7 +542,7 @@
       <dt data-match="pmi removal rule">PMI removal rule</dt>
       <dd>Which of the two Homeowners Protection Act exit points this model applies: cancellation you request at 80% LTV, or automatic termination the servicer must perform at 78%.</dd>
 
-      <dt data-match="loan amount|principal">Principal (loan amount)</dt>
+      <dt data-match="loan amount|principal">Principal <span class="paren">(loan amount)</span></dt>
       <dd>The sum you borrow, before interest; each payment splits between interest owed and principal repaid, and what remains unpaid is your balance.</dd>
 
       <dt data-match="remaining balance">Remaining balance</dt>
@@ -548,7 +551,7 @@
       <dt data-match="term">Term</dt>
       <dd>The years the amortization schedule runs, which sets the payment size. Thirty years is standard; shorter terms cost more each month, less overall.</dd>
 
-      <dt data-match="total cost">Total cost</dt>
+      <dt data-match="total cost|cost to term">Total cost</dt>
       <dd>What the loan costs to full term: all payments made, plus upfront fees, plus total mortgage insurance.</dd>
 
       <dt data-match="total interest">Total interest</dt>
@@ -681,7 +684,7 @@
   // use. Elements that carry hand-written title text are left alone.
   // ponytail: naive substring scan over every label; index the tokens if the glossary grows.
   function annotate(root){
-    root.querySelectorAll(".field label, .row .k, #costTable .k, .shared .readout").forEach(el => {
+    root.querySelectorAll(".field label, .row .k, #costTable .k, .shared .readout, #chartHead").forEach(el => {
       if(el.title) return;
       const t = defFor(el.textContent);
       if(t) el.title = t;
@@ -695,7 +698,7 @@
     // Manual: auto light-dismisses on the pointer press, leaving a re-tap on the opening label
     // indistinguishable from a first open. The hide covers any click; only a different label reopens.
     document.addEventListener("click", e => {
-      const el = e.target.closest(".row .k, #costTable .k, .shared .readout, .field label");
+      const el = e.target.closest(".row .k, #costTable .k, .shared .readout, .field label, #barsHead, #chartHead");
       // A defined input label shows its definition instead of focusing the input, so a phone
       // keyboard does not slide up over the popover. The input box itself still takes focus.
       if(el && el.tagName === "LABEL" && el.title) e.preventDefault();
@@ -801,14 +804,14 @@
       html += rowHTML("Payment incl. PMI (first period)", money2(res.M + res.pmiFirst));
     }
     html += rowHTML("Effective annual rate", pct(res.ear));
-    html += rowHTML("Total interest (to term)", money(res.totalInterest));
+    html += rowHTML("Total interest", money(res.totalInterest));
     if(res.pmiApplies){
       html += rowHTML("PMI ends", "period " + res.pmiEndPeriod + " (yr " + (res.pmiEndPeriod/res.m).toFixed(1) + ")");
       html += rowHTML("Total PMI", money(res.totalPMI));
     } else {
       html += rowHTML("PMI", "none");
     }
-    html += rowHTML("Total cost (to term, incl. fees + PMI)", money(res.totalCost), true);
+    html += rowHTML("Total cost (incl. fees + PMI)", money(res.totalCost), true);
     if(hData){
       html += "<div class='row' style='padding-top:12px'><span class='k' style='font-weight:650;color:var(--ink)'>Through holding period</span><span class='v'></span></div>";
       html += rowHTML("Payments made (P&amp;I)", money(hData.paid));
@@ -819,8 +822,10 @@
     }
     return html;
   }
+  // Not for #costTable .k div rows: that div is flex, so the span would become its own column.
+  const paren = s => s.replace(/ (\([^)]*\))$/, ' <span class="paren">$1</span>');
   function rowHTML(k,v,total){
-    return `<div class="row${total?' total':''}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+    return `<div class="row${total?' total':''}"><span class="k">${paren(k)}</span><span class="v">${v}</span></div>`;
   }
 
   // Offer A's markup is the template for B/C/D: rewrite the id/for index,
@@ -946,11 +951,10 @@
   function drawBars(items, useHorizon, hYears){
     const host = $("bars"), table = $("costTable");
     const label = s => useHorizon ? s.k : (s.kTerm || s.k);
-    $("barsHead").textContent = useHorizon ? "Cost to walk away" : "Cost to term";
-    // "Cost to term" would match the Term entry, so the to-term hint looks up the total instead
-    // Lead clause only: the component breakdown after the colon is the table itself.
-    const def = defFor(useHorizon ? "cost to walk away" : "total cost").split(":")[0];
-    $("barsHint").textContent = def.charAt(0).toLowerCase() + def.slice(1);
+    // Set here, not by annotate(): it skips titled elements, so the title would outlive a mode flip.
+    const head = $("barsHead");
+    head.textContent = useHorizon ? "Cost to walk away" : "Cost to term";
+    head.title = defFor(head.textContent);
     table.innerHTML = "";
     const blank = `<p class="chart-empty">Enter valid offer terms to see what each one is made of.</p>`;
     if(!items.length){ host.innerHTML = blank; return; }
@@ -995,7 +999,7 @@
          + rows.map(r => `<td>${cell(r.amts[j])}</td>`).join("") + `</tr>`;
     });
     t += `<tr class="total"><th class="k" scope="row">`
-       + (useHorizon ? "Cost to walk away (incl. fees + PMI)" : "Total cost (to term, incl. fees + PMI)")
+       + paren(useHorizon ? "Cost to walk away (incl. fees + PMI)" : "Total cost (incl. fees + PMI)")
        + `</th>` + rows.map(r => `<td>${money(r.total)}</td>`).join("") + `</tr></tbody></table>`;
     table.innerHTML = t;
   }
@@ -1419,16 +1423,19 @@
     }
 
     // every rendered label and readout row resolves to a definition
-    const undef = [...document.querySelectorAll(".field label, .row .k, #costTable .k")]
+    const undef = [...document.querySelectorAll(".field label, .row .k, #costTable .k, #barsHead, #chartHead")]
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
+    // "Terms of Use" contains the Term token; only the two cost headings are defined
+    ok([...document.querySelectorAll(".section-label")].every(el => !el.title),
+       "a section label outside the cost headings carries a definition");
 
     // ...and to the right one, not a general entry whose shorter token also matches.
     ok(/scheduled payment covering interest/.test(defFor("Payment incl. PMI (first period)")),
        "payment row resolved to: " + defFor("Payment incl. PMI (first period)").slice(0,60));
     ok(/payments made so far/.test(defFor("Interest")),
        "bare table label 'Interest' resolved to: " + defFor("Interest").slice(0,60));
-    ok(defFor("Total interest (to term)") !== defFor("Interest"),
+    ok(defFor("Total interest") !== defFor("Interest"),
        "to-term interest row collapsed onto the holding-period definition");
     ok(/yearly mortgage insurance premium/.test(defFor("PMI annual rate (%)")),
        "PMI rate label resolved to: " + defFor("PMI annual rate (%)").slice(0,60));
@@ -1594,11 +1601,10 @@
     ok(!ctLabels().includes("PMI"), "PMI row shown with no PMI in any offer");   // no offer owes PMI at this LTV
     ok(ctLabels().includes("Remaining balance"), "no remaining balance row at a holding period");
     ok($("barsHead").textContent === "Cost to walk away", "heading " + $("barsHead").textContent);
-    ok($("barsHint").textContent === "what the loan costs if you leave at the end of the holding period",
-       "walk-away hint: " + $("barsHint").textContent);
+    ok($("barsHead").title === defFor("cost to walk away"), "walk-away heading definition: " + $("barsHead").title.slice(0,60));
     $("horizon").value = ""; compute();
     ok($("barsHead").textContent === "Cost to term", "heading " + $("barsHead").textContent);
-    ok($("barsHint").textContent === "what the loan costs to full term", "to-term hint: " + $("barsHint").textContent);
+    ok($("barsHead").title === defFor("total cost"), "to-term heading definition: " + $("barsHead").title.slice(0,60));
     ok(!ctLabels().includes("Remaining balance"), "remaining balance row at term");
     ok(ctLabels().includes("Total interest") && ctLabels().at(-1).startsWith("Total cost"),
        "to-term labels: " + ctLabels().join(" | "));
@@ -1607,6 +1613,7 @@
     ok([...ct.querySelectorAll(".k")].every(k => k.title), "table label with no definition, to term");
     $("horizon").value = "25"; compute();
     ok([...ct.querySelectorAll(".k")].every(k => k.title), "table label with no definition, walk away");
+    ok($("barsHead").title === defFor("cost to walk away"), "heading definition did not follow the flip back");
     if(pop.showPopover){
       ct.querySelector(".total .k").click();
       ok(pop.matches(":popover-open") && /leave at the end/.test(pop.textContent), "table label tap: " + pop.textContent);
