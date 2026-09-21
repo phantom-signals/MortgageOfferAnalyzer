@@ -349,6 +349,7 @@
       Mortgage Offer Analyzer
     </h1>
     <p class="sub">A free and <a href="https://github.com/phantom-signals/MortgageOfferAnalyzer" target="_blank" rel="noopener">open source</a> mortgage analysis tool that runs entirely in your browser.</p>
+    <p class="sub">Click on any term to see its definition, or check the <a href="#glossary">glossary</a>.</p>
   </header>
 
   <div class="shared">
@@ -471,13 +472,26 @@
     <summary class="section-label">Glossary</summary>
     <!-- Definitions live here only; the script derives every hover tooltip from this list.
          data-match holds the "|"-separated snippets that identify the term inside a rendered
-         label. Order specific before general — first match wins. No data-match: glossary-only. -->
+         label; the longest matching snippet wins. No data-match: glossary-only.
+         Keep entries in alphabetical order; #selftest checks it. -->
     <dl class="glossary" id="glossary">
-      <dt>Offer</dt>
-      <dd>One lender&rsquo;s quoted loan terms (rate, term, fees, and mortgage insurance) for the same loan amount, so you can compare competing quotes side by side.</dd>
+      <dt>Amortization</dt>
+      <dd>The fixed schedule that retires the loan through equal payments, with interest taking most of each early payment and principal most of each late one.</dd>
 
-      <dt data-match="loan amount|principal">Principal (loan amount)</dt>
-      <dd>The sum you borrow, before interest; each payment splits between interest owed and principal repaid, and what remains unpaid is your balance.</dd>
+      <dt>Amortization midpoint</dt>
+      <dd>Half the scheduled payments in; the HPA requires PMI to end here even if the balance has not reached the LTV threshold.</dd>
+
+      <dt data-match="annual interest rate">Annual interest rate</dt>
+      <dd>The nominal yearly rate quoted on the loan, divided by the number of payments per year to get the rate charged each period.</dd>
+
+      <dt data-match="cost to walk away">Cost to walk away</dt>
+      <dd>What the loan costs if you leave at the end of the holding period: payments made, plus mortgage insurance paid, plus upfront fees, plus the remaining balance.</dd>
+
+      <dt data-match="effective annual rate">EAR (effective annual rate)</dt>
+      <dd>What the nominal rate costs over a year once you count compounding within it, so loans with different payment frequencies compare fairly.</dd>
+
+      <dt>Escrow</dt>
+      <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; this page does not model it.</dd>
 
       <dt data-match="holding period">Holding period</dt>
       <dd>How long you expect to keep the loan before selling or refinancing; costs are truncated there instead of running to full term.</dd>
@@ -485,77 +499,65 @@
       <dt data-match="home value at purchase|original value">Home value at purchase (original value)</dt>
       <dd>The lower of the sale price and the appraised value at closing; mortgage insurance rules measure your loan against this figure, not against later market value.</dd>
 
-      <dt data-match="pmi removal rule">PMI removal rule</dt>
-      <dd>Which of the two Homeowners Protection Act exit points this model applies: cancellation you request at 80% LTV, or automatic termination the servicer must perform at 78%.</dd>
-
-      <dt data-match="pmi premium basis">PMI premium basis</dt>
-      <dd>Whether the monthly premium is recalculated on the declining balance, so it shrinks as you pay down, or fixed on the original loan amount.</dd>
-
-      <dt data-match="annual interest rate">Annual interest rate</dt>
-      <dd>The nominal yearly rate quoted on the loan, divided by the number of payments per year to get the rate charged each period.</dd>
-
-      <dt data-match="payments per year">Payments per year</dt>
-      <dd>How many payments the schedule makes annually: 12 for monthly, 26 for biweekly. This sets both the periodic rate and the number of payments.</dd>
-
-      <dt data-match="upfront fees|points">Upfront fees and points</dt>
-      <dd>Cash paid at closing for origination and other charges, plus points paid to buy the rate down; one point is 1% of the loan amount.</dd>
-
-      <dt data-match="pmi annual rate">PMI annual rate</dt>
-      <dd>The yearly mortgage insurance premium as a percentage of the balance it is charged on; divide by payments per year for the amount added to each payment.</dd>
-
-      <dt data-match="payment, p&amp;i|payment incl|payments made">Payment, P&amp;I (principal and interest)</dt>
-      <dd>The scheduled payment covering interest owed plus principal repaid; it excludes mortgage insurance, property taxes, homeowners insurance, and escrow.</dd>
-
-      <dt data-match="effective annual rate">EAR (effective annual rate)</dt>
-      <dd>What the nominal rate costs over a year once you count compounding within it, so loans with different payment frequencies compare fairly.</dd>
+      <dt>HPA (Homeowners Protection Act)</dt>
+      <dd>The federal law setting PMI exit rules: automatic termination at 78% LTV of original value, a cancellation request you may make at 80%, and final termination at the amortization midpoint regardless of balance.</dd>
 
       <dt data-match="initial ltv">Initial LTV</dt>
       <dd>The loan-to-value ratio at closing: loan amount divided by home value at purchase; above 80% the lender requires mortgage insurance.</dd>
 
-      <dt>LTV (loan-to-value)</dt>
-      <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and triggers removal of mortgage insurance.</dd>
-
-      <dt data-match="total interest">Total interest</dt>
-      <dd>Every dollar of interest paid across the full amortization schedule: all payments made minus the principal borrowed.</dd>
-
       <dt data-match="interest paid|interest">Interest paid</dt>
       <dd>Interest paid through the holding period only: payments made so far minus the principal actually retired in that span.</dd>
 
-      <dt data-match="pmi ends">PMI ends</dt>
-      <dd>The payment number, and its year, at which the scheduled balance first drops to the removal threshold, or the amortization midpoint if that comes first.</dd>
+      <dt>LTV (loan-to-value)</dt>
+      <dd>Loan balance divided by the home&rsquo;s value, as a percentage; it falls as the balance amortizes and triggers removal of mortgage insurance.</dd>
 
-      <dt data-match="total pmi">Total PMI</dt>
-      <dd>All mortgage insurance premiums charged from the first payment until PMI ends.</dd>
+      <dt>MIP (mortgage insurance premium)</dt>
+      <dd>The FHA equivalent of PMI, which follows different rules (often for the life of the loan); this page does not model it.</dd>
 
-      <dt data-match="total cost">Total cost</dt>
-      <dd>What the loan costs to full term: all payments made, plus upfront fees, plus total mortgage insurance.</dd>
+      <dt>Offer</dt>
+      <dd>One lender&rsquo;s quoted loan terms (rate, term, fees, and mortgage insurance) for the same loan amount, so you can compare competing quotes side by side.</dd>
 
-      <dt data-match="remaining balance">Remaining balance</dt>
-      <dd>Principal still owed at the end of the holding period, which you must pay off when you sell or refinance.</dd>
+      <dt data-match="payment, p&amp;i|payment incl|payments made">Payment, P&amp;I (principal and interest)</dt>
+      <dd>The scheduled payment covering interest owed plus principal repaid; it excludes mortgage insurance, property taxes, homeowners insurance, and escrow.</dd>
 
-      <dt data-match="cost to walk away">Cost to walk away</dt>
-      <dd>What the loan costs if you leave at the end of the holding period: payments made, plus mortgage insurance paid, plus upfront fees, plus the remaining balance.</dd>
-
-      <dt data-match="term">Term</dt>
-      <dd>The years the amortization schedule runs, which sets the payment size. Thirty years is standard; shorter terms cost more each month, less overall.</dd>
+      <dt data-match="payments per year">Payments per year</dt>
+      <dd>How many payments the schedule makes annually: 12 for monthly, 26 for biweekly. This sets both the periodic rate and the number of payments.</dd>
 
       <dt data-match="pmi">PMI (private mortgage insurance)</dt>
       <dd>Insurance the lender requires while the loan is large relative to the home&rsquo;s value, typically when the down payment is less than 20%; it protects the lender, not you, if the borrower defaults, and is charged on top of principal and interest.</dd>
 
-      <dt>HPA (Homeowners Protection Act)</dt>
-      <dd>The federal law setting PMI exit rules: automatic termination at 78% LTV of original value, a cancellation request you may make at 80%, and final termination at the amortization midpoint regardless of balance.</dd>
+      <dt data-match="pmi annual rate">PMI annual rate</dt>
+      <dd>The yearly mortgage insurance premium as a percentage of the balance it is charged on; divide by payments per year for the amount added to each payment.</dd>
 
-      <dt>Amortization midpoint</dt>
-      <dd>Half the scheduled payments in; the HPA requires PMI to end here even if the balance has not reached the LTV threshold.</dd>
+      <dt data-match="pmi ends">PMI ends</dt>
+      <dd>The payment number, and its year, at which the scheduled balance first drops to the removal threshold, or the amortization midpoint if that comes first.</dd>
 
-      <dt>Amortization</dt>
-      <dd>The fixed schedule that retires the loan through equal payments, with interest taking most of each early payment and principal most of each late one.</dd>
+      <dt data-match="pmi premium basis">PMI premium basis</dt>
+      <dd>Whether the monthly premium is recalculated on the declining balance, so it shrinks as you pay down, or fixed on the original loan amount.</dd>
 
-      <dt>Escrow</dt>
-      <dd>An account the servicer holds to pay property taxes and homeowners insurance on your behalf; this page does not model it.</dd>
+      <dt data-match="pmi removal rule">PMI removal rule</dt>
+      <dd>Which of the two Homeowners Protection Act exit points this model applies: cancellation you request at 80% LTV, or automatic termination the servicer must perform at 78%.</dd>
 
-      <dt>MIP (mortgage insurance premium)</dt>
-      <dd>The FHA equivalent of PMI, which follows different rules (often for the life of the loan); this page does not model it.</dd>
+      <dt data-match="loan amount|principal">Principal (loan amount)</dt>
+      <dd>The sum you borrow, before interest; each payment splits between interest owed and principal repaid, and what remains unpaid is your balance.</dd>
+
+      <dt data-match="remaining balance">Remaining balance</dt>
+      <dd>Principal still owed at the end of the holding period, which you must pay off when you sell or refinance.</dd>
+
+      <dt data-match="term">Term</dt>
+      <dd>The years the amortization schedule runs, which sets the payment size. Thirty years is standard; shorter terms cost more each month, less overall.</dd>
+
+      <dt data-match="total cost">Total cost</dt>
+      <dd>What the loan costs to full term: all payments made, plus upfront fees, plus total mortgage insurance.</dd>
+
+      <dt data-match="total interest">Total interest</dt>
+      <dd>Every dollar of interest paid across the full amortization schedule: all payments made minus the principal borrowed.</dd>
+
+      <dt data-match="total pmi">Total PMI</dt>
+      <dd>All mortgage insurance premiums charged from the first payment until PMI ends.</dd>
+
+      <dt data-match="upfront fees|points">Upfront fees and points</dt>
+      <dd>Cash paid at closing for origination and other charges, plus points paid to buy the rate down; one point is 1% of the loan amount.</dd>
     </dl>
     </details>
 
@@ -652,14 +654,16 @@
   });
 
   // In place, not by fragment: the hash holds share state, and a closed fold would hide the target.
-  document.querySelector('a[href="#terms"]').addEventListener("click", e => {
+  document.querySelectorAll('a[href="#terms"], a[href="#glossary"]').forEach(a => a.addEventListener("click", e => {
     e.preventDefault();
-    $("terms").open = true;
-    $("terms").scrollIntoView();
-  });
+    const fold = $(a.hash.slice(1)).closest("details");
+    fold.open = true;
+    fold.scrollIntoView();
+  }));
 
   // Definitions are written once, in the footer glossary; tooltips are read back out of it so
-  // the two cannot drift. Ordered specific before general in the markup — first match wins.
+  // the two cannot drift. The longest matching token wins, so "total interest" beats "interest"
+  // whatever the glossary's order; markup order only breaks a tie.
   const DEFS = [...document.querySelectorAll("#glossary dt")]
     .filter(dt => dt.dataset.match)
     .map(dt => ({tokens: dt.dataset.match.toLowerCase().split("|"),
@@ -667,8 +671,10 @@
 
   const defFor = s => {
     s = s.toLowerCase();
-    const d = DEFS.find(d => d.tokens.some(t => s.includes(t)));
-    return d ? d.text : "";
+    let best = "", len = 0;
+    for(const d of DEFS) for(const t of d.tokens)
+      if(t.length > len && s.includes(t)){ best = d.text; len = t.length; }
+    return best;
   };
   // Hover text via the native title attribute, the same mechanism the shared selects already
   // use. Elements that carry hand-written title text are left alone.
@@ -1356,6 +1362,11 @@
     document.querySelector('a[href="#terms"]').click();
     ok(terms.open && location.hash === hashAtTerms, "Terms link did not open its fold, or wrote the hash");
     terms.open = false;
+    const glossFold = $("glossary").closest("details");
+    glossFold.open = false;
+    document.querySelector('a[href="#glossary"]').click();
+    ok(glossFold.open && location.hash === hashAtTerms, "Glossary link did not open its fold, or wrote the hash");
+    glossFold.open = false;
 
     // the tail and the PMI input lock read one predicate, so they cannot disagree
     setShared("400000","450000");
@@ -1411,13 +1422,20 @@
       .filter(el => el.textContent.trim() && !el.title);
     ok(undef.length === 0, "no definition for: " + undef.map(e => e.textContent.trim()).join(" | "));
 
-    // ...and to the right one: first-match-wins lets a label fall through to a general entry.
+    // ...and to the right one, not a general entry whose shorter token also matches.
     ok(/scheduled payment covering interest/.test(defFor("Payment incl. PMI (first period)")),
        "payment row resolved to: " + defFor("Payment incl. PMI (first period)").slice(0,60));
     ok(/payments made so far/.test(defFor("Interest")),
        "bare table label 'Interest' resolved to: " + defFor("Interest").slice(0,60));
     ok(defFor("Total interest (to term)") !== defFor("Interest"),
        "to-term interest row collapsed onto the holding-period definition");
+    ok(/yearly mortgage insurance premium/.test(defFor("PMI annual rate (%)")),
+       "PMI rate label resolved to: " + defFor("PMI annual rate (%)").slice(0,60));
+
+    // glossary reads alphabetically
+    const dts = [...document.querySelectorAll("#glossary dt")].map(dt => dt.textContent);
+    const unsorted = dts.find((t, i) => i && dts[i-1].localeCompare(t, undefined, {sensitivity: "base"}) > 0);
+    ok(!unsorted, "glossary out of alphabetical order at: " + unsorted);
 
     // removing a card shifts later offers down
     renderOffers(3);
