@@ -264,7 +264,8 @@
   /* share control — .inp carries the look; min-width holds the box while the label swaps */
   .share{text-align:center;margin:18px 0 6px}
   .share .inp{width:auto;min-width:14em;background:var(--card);cursor:pointer}
-  .share .hint{display:block;max-width:52ch;margin:6px auto 0}
+  /* the block stays centered under the button; its lines don't, .share's centering would wrap them ragged both edges */
+  .share .hint{display:block;max-width:52ch;margin:6px auto 0;text-align:left}
 
   .section-label{
     font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);
@@ -1659,6 +1660,10 @@
        "C not stacked under folded A: " + cardC.offsetTop + " vs " + (cardA.offsetTop + cardA.offsetHeight + rowGap));
     ok(cardC.offsetLeft === cardA.offsetLeft, "C changed column");
     offers.style.gridTemplateColumns = "";
+
+    // the share hint wraps to several lines on a phone; .share centers the button, not those lines
+    const hintAlign = getComputedStyle($("copyLink").parentNode.querySelector(".hint")).textAlign;
+    ok(hintAlign === "left", "share hint not left-aligned: " + hintAlign);
 
     $("amount").value = "400000"; $("homeValue").value = "450000"; $("horizon").value = "";
     $("pmiThresh").value = "0.78"; $("pmiBasis").value = "declining";
